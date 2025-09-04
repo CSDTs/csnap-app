@@ -2,6 +2,7 @@
 
 ## in development:
 
+## 11.0.0:
 * **New Features:**
     * Neural Networks
         - support for building your own custom neural networks using hypermutation and data-objects (OOP 2.0)
@@ -44,12 +45,14 @@
 * **Notable Changes:**
     * allow non-list inputs (scalars) to APPEND, automatically treat as single-item lists without throwing a type assertion error
     * allow using RUN as "ignore" command for a reporter, removed the ring type assertion and error message
+    * allow setting "my scripts" to a list of scripts (powerful but dangerous!)
     * significantly sped-up rendering morphs representing data inside table cells
     * support testing selectors (translatable text) for equality with text and numbers without needing to "unselect" them
     * added support for color slot default values
     * replaced "Object" type input slot with "Color" type in the input slot dialog ("Object" is now in the "special slots" menu)
     * hyperized "new costume" reporter to also work on tensors of colors
     * keep the source's ghost effect when pasting a sprite onto another
+    * enabled the stage to create temporary sprites using the "a new clone of (Turtle sprite)" reporter
     * increased watcher update frequency for non-table monitors
     * Just Bars library: added option to clear before plotting
     * in embedded projects don't show the embed overlay ('green flag')' if embedMode is present but noRun isn't, thanks, Bernat!
@@ -68,6 +71,33 @@
     * Just Bars library: Only plot non-zero values, avoid drawing a "dot" for zero
 * **Translation Updates:**
     * German, including translation of the "Writing and formatting" library blocks
+    * Catalan, thank you, Joan!
+
+### 2025-08-29
+* objects, blocks: Enable the stage to create temporary sprites using the "a new clone of (Turtle sprite)" reporter
+* updated Neural Networks library: improved "generate predicate" command for rendering and ignoring csv column names
+* v11-rc9
+* blocks, threads: made "my scripts" attribute settable (to a list of scripts)
+* German translation update (for "my scripts")
+* updated Neural Networks library with a reporter that generates a perceptron/hidden layer sprite
+* v11-rc10
+* v11.0.0 major release
+
+### 2025-08-28
+* German translation update
+* updated Neural Networks library: added options to "generate predicate" command for epochs, partitioning and hidden layers topology
+* v11-rc5
+* updated Neural Networks library: translation support for optional inputs of "generate predicate" command
+* v11-rc6
+* updated Neural Networks library: manual abort / shortcut support for "generate predicate" command
+* v11-rc7
+* updated Neural Networks library: fixed a bunch of typos, thanks, Jadga!
+* v11-rc8
+
+### 2025-08-27
+* updated Neural Networks library: new "generate predicate" command, programs a custom ai block all by itself
+* German translation update
+* v11-rc4
 
 ### 2025-08-23
 * blocks: fixed expanding optional inputs of broadcast and request blocks by 1 instead of all at once

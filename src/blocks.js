@@ -162,7 +162,7 @@ CustomHatBlockMorph*/
 
 // Global stuff ////////////////////////////////////////////////////////
 
-modules.blocks = '2025-August-23';
+modules.blocks = '2025-August-29';
 
 var SyntaxElementMorph;
 var BlockMorph;
@@ -1731,7 +1731,9 @@ SyntaxElementMorph.prototype.getVarNamesDict = function () {
                 'draggable?' : ['my draggable?'],
                 'rotation style' : ['my rotation style'],
                 'rotation x' : ['my rotation x'],
-                'rotation y' : ['my rotation y']
+                'rotation y' : ['my rotation y'],
+                'scripts' : ['my scripts']
+
             }];
             if (this.world().currentKey === 16) { // shift
                 dict.my[0]['~'] = null; // don't forget we're inside an array...
@@ -11715,8 +11717,8 @@ InputSlotMorph.prototype.clonablesMenuWithTurtle = function (searching) {
 
     if (rcvr instanceof SpriteMorph) {
         dict.myself = ['myself'];
-        dict['Turtle sprite'] = ['Turtle sprite'];
     }
+    dict['Turtle sprite'] = ['Turtle sprite'];
     stage.children.forEach(morph => {
         if (morph instanceof SpriteMorph && !morph.isTemporary) {
             if (!allNames.some(n => snapEquals(n, morph.name))) {
