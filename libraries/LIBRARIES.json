@@ -1,30 +1,12 @@
 [
 	{
-		"fileName": "sprite-location/sprite-location.xml",
-		"name": "Sprite Location",
-		"description": "Get current sprite location and log to console",
-		"searchData": ["get sprite location", "log sprite location to console"],
-		"categories": ["Sprite Location"]
-	},
-	{
 		"fileName": "ai/nst.xml",
 		"name": "AI",
 		"description": "Get current sprite location and log to console",
 		"searchData": ["get sprite location", "log sprite location to console"],
 		"categories": ["AI"]
 	},
-	{
-		"fileName": "~",
-		"name": "~"
-	},
-	{
-		"fileName": "~",
-		"name": "~"
-	},
-	{
-		"fileName": "~",
-		"name": "~"
-	},
+
 	{
 		"fileName": "csdt/csdt_adinkra.xml",
 		"name": "Adinkra Tool Blocks",
@@ -127,7 +109,7 @@
 		"name": "~"
 	},
 	{
-		"fileName": "../snap/libraries/code2blocks_module.xml",
+		"fileName": "code2blocks_module.xml",
 		"name": "Code to Blocks to Code",
 		"description": "Translate text code to blocks and vice-versa",
 		"searchData": ["parse code _ to blocks", "encode blocks _ to text _ pretty"],
@@ -146,7 +128,7 @@
 	},
 
 	{
-		"fileName": "../snap/libraries/OOP_module.xml",
+		"fileName": "OOP_module.xml",
 		"name": "OOP",
 		"description": "Data Objects with prototypical inheritance",
 		"searchData": ["object _", "clone _ _", "field _ of _ _", "add _ to _"],
@@ -162,7 +144,7 @@
 		}
 	},
 	{
-		"fileName": "../snap/libraries/events_module.xml",
+		"fileName": "events_module.xml",
 		"name": "Events",
 		"description": "Write scripts that react to data transitions, state changes and sensor threshold passings",
 		"searchData": [
@@ -201,7 +183,7 @@
 		}
 	},
 	{
-		"fileName": "../snap/libraries/colors_module.xml",
+		"fileName": "colors_module.xml",
 		"name": "Colors",
 		"description": "mix, modify and transition colors",
 		"searchData": ["mix _ with _ ratio _ %", "color _ _ by _ %", "shift _ of _ by _", "transition _ over _"],
@@ -243,7 +225,7 @@
 		}
 	},
 	{
-		"fileName": "../snap/libraries/neural_networks_module.xml",
+		"fileName": "neural_networks_module.xml",
 		"name": "Neural Networks",
 		"description": "Classify data vectors using neural networks, train and validate your own deep neural models",
 		"searchData": [
@@ -278,7 +260,7 @@
 		"name": "~"
 	},
 	{
-		"fileName": "../snap/libraries/iteration-composition.xml",
+		"fileName": "iteration-composition.xml",
 		"name": "Iteration, composition",
 		"description": "Traditional loop constructs (while, until, etc.) plus the Lisp \"named let\" (a generalization of FOR) plus functional iteration (repeated invocation of a function) and function composition.",
 		"translations": {
@@ -410,7 +392,7 @@
 		"categories": ["control"]
 	},
 	{
-		"fileName": "../snap/libraries/list-utilities.xml",
+		"fileName": "list-utilities.xml",
 		"name": "List utilities",
 		"description": "Some standard functions on lists (reverse, sort, etc.)",
 		"translations": {
@@ -509,7 +491,7 @@
 		"categories": ["lists", "operators"]
 	},
 	{
-		"fileName": "../snap/libraries/colors.xml",
+		"fileName": "colors.xml",
 		"name": "Colors and Crayons",
 		"description": "Incorporates the former crayon and set RGB libraries.  Implements fair hues (more orange, less green, adds brown) and a linear color scale including grayscale and fair-hue-based shades.",
 		"translations": {
@@ -645,7 +627,7 @@
 		"categories": ["pen", "lists", "other", "control", "operators", "sensing", "variables"]
 	},
 	{
-		"fileName": "../snap/libraries/crayons.xml",
+		"fileName": "crayons.xml",
 		"name": "Crayons",
 		"description": "Just the crayons, without the rest of the colors library.  Fast and simple.",
 		"translations": {
@@ -708,7 +690,7 @@
 		"categories": ["operators"]
 	},
 	{
-		"fileName": "../snap/libraries/try-catch.xml",
+		"fileName": "try-catch.xml",
 		"name": "Catch errors",
 		"description": "Run a script; if an error happens, instead of stopping the script with a red halo, run another script to handle the error. Also includes a block to cause an error with a message given as input. Also includes a block to create a script variable and give it a value.",
 		"translations": {
@@ -734,7 +716,7 @@
 		"categories": ["control"]
 	},
 	{
-		"fileName": "../snap/libraries/parallel_module.xml",
+		"fileName": "parallel_module.xml",
 		"name": "Parallelization",
 		"description": "Run several scripts in parallel and wait until all are done.",
 		"translations": {
@@ -780,7 +762,7 @@
 		"categories": ["control"]
 	},
 	{
-		"fileName": "../snap/libraries/Eisenbergification.xml",
+		"fileName": "Eisenbergification.xml",
 		"name": "Getters and setters",
 		"description": "Eisenberg's Law: Anything that can be done from the GUI should be doable from the programming language, and vice versa.",
 		"translations": {
@@ -834,7 +816,7 @@
 		"categories": ["sensing"]
 	},
 	{
-		"fileName": "../snap/libraries/list_comprehension_module.xml",
+		"fileName": "list_comprehension_module.xml",
 		"name": "List comprehension",
 		"description": "HOF version of ZIP, letting you \"hyperize\" any dyadic function",
 		"translations": {
@@ -859,7 +841,7 @@
 		"name": "~"
 	},
 	{
-		"fileName": "../snap/libraries/mobile_sensors.xml",
+		"fileName": "mobile_sensors.xml",
 		"name": "Mobile Device Sensors",
 		"description": "Access sensors on phones and tablets",
 		"searchData": ["tilt _"],
@@ -994,7 +976,7 @@
 		}
 	},
 	{
-		"fileName": "../snap/libraries/embroidery_module.xml",
+		"fileName": "embroidery_module.xml",
 		"name": "Embroidery",
 		"description": "Generate embroidery files for stitching pen trails on a sewing machine, experimental and under construction.",
 		"searchData": [
@@ -1022,7 +1004,7 @@
 		}
 	},
 	{
-		"fileName": "../snap/libraries/maps_module.xml",
+		"fileName": "maps_module.xml",
 		"name": "World Map",
 		"description": "Add interactive maps to projects",
 		"translations": {
@@ -1082,7 +1064,7 @@
 		"categories": ["other"]
 	},
 	{
-		"fileName": "../snap/libraries/menu_module.xml",
+		"fileName": "menu_module.xml",
 		"name": "Menus",
 		"description": "Prompt the user to pick an option.",
 		"translations": {
@@ -1103,7 +1085,7 @@
 		"categories": ["sensing"]
 	},
 	{
-		"fileName": "../snap/libraries/textCostumes_module.xml",
+		"fileName": "textCostumes_module.xml",
 		"name": "Text Costumes",
 		"description": "Generate costumes from letters or words of text.",
 		"translations": {
@@ -1144,7 +1126,7 @@
 		"categories": ["looks"]
 	},
 	{
-		"fileName": "../snap/libraries/speech_module.xml",
+		"fileName": "speech_module.xml",
 		"name": "Text to Speech - Voice to Text",
 		"description": "Output text using speech synthesis and input text by speaking into the microphone.",
 		"translations": {
@@ -1196,7 +1178,7 @@
 		"categories": ["sound", "sensing"]
 	},
 	{
-		"fileName": "../snap/libraries/animation_module.xml",
+		"fileName": "animation_module.xml",
 		"name": "Animation",
 		"description": "Glide, grow and rotate using easing functions.",
 		"translations": {
@@ -1247,7 +1229,7 @@
 		"categories": ["variables", "control", "operators", "motion"]
 	},
 	{
-		"fileName": "../snap/libraries/pixel_module.xml",
+		"fileName": "pixel_module.xml",
 		"name": "Pixels",
 		"description": "Manipulate costumes pixel-wise.",
 		"translations": {
@@ -1306,7 +1288,7 @@
 		"categories": ["looks", "sensing", "lists", "operators"]
 	},
 	{
-		"fileName": "../snap/libraries/halo_module.xml",
+		"fileName": "halo_module.xml",
 		"name": "Outlines and Halos",
 		"description": "Compute and display outlines of costumes and halos around sprites",
 		"searchData": ["outline color: _ width: _", "halo color: _ width: _ while _", "halo color: _ width: _ for _ secs"],
@@ -1322,7 +1304,7 @@
 		}
 	},
 	{
-		"fileName": "../snap/libraries/audioComp_module.xml",
+		"fileName": "audioComp_module.xml",
 		"name": "Audio Comp",
 		"description": "Analyze, manipulate and generate sound samples.",
 		"translations": {
@@ -1404,7 +1386,7 @@
 		"categories": ["other", "sound", "operators", "sensing", "pen", "lists"]
 	},
 	{
-		"fileName": "../snap/libraries/frequency_distribution_module.xml",
+		"fileName": "frequency_distribution_module.xml",
 		"name": "Frequency Distribution Analysis",
 		"description": "Analyze data for frequency distribution",
 		"translations": {
@@ -1475,7 +1457,7 @@
 		"categories": ["lists", "operators", "pen"]
 	},
 	{
-		"fileName": "../snap/libraries/localstorage_module.xml",
+		"fileName": "localstorage_module.xml",
 		"name": "Database",
 		"description": "Persistent key-value storage across Snap! sessions in the same browser",
 		"translations": {
@@ -1526,7 +1508,7 @@
 		"categories": ["other"]
 	},
 	{
-		"fileName": "../snap/libraries/tiles_module.xml",
+		"fileName": "tiles_module.xml",
 		"name": "Tiles",
 		"description": "Divide the stage into sub-regions in each of which to perform an action",
 		"translations": {
@@ -1539,7 +1521,7 @@
 		"categories": ["control"]
 	},
 	{
-		"fileName": "../snap/libraries/arcs_module.xml",
+		"fileName": "arcs_module.xml",
 		"name": "Arcs",
 		"description": "Turn sprites by a delta of degrees moving them at a given radius",
 		"translations": {
@@ -1563,7 +1545,7 @@
 		"name": "~"
 	},
 	{
-		"fileName": "../snap/libraries/word-sentence.xml",
+		"fileName": "word-sentence.xml",
 		"name": "Words, sentences",
 		"description": "One of the big ideas in Logo that they left out of Scratch is thinking of text as structured into words and sentences, rather than just a string of characters.  This library brings back that idea.",
 		"translations": {
@@ -1691,7 +1673,7 @@
 		"categories": ["operators", "lists", "control"]
 	},
 	{
-		"fileName": "../snap/libraries/words_module.xml",
+		"fileName": "words_module.xml",
 		"name": "Just Words",
 		"description": "Use texts as if they were lists of words. A minimal variant of the Words/Sentences library for language projects like chat bots.",
 		"translations": {
@@ -1704,7 +1686,7 @@
 		"categories": ["operators"]
 	},
 	{
-		"fileName": "../snap/libraries/strings.xml",
+		"fileName": "strings.xml",
 		"name": "Strings, Multi-line input",
 		"description": "Extract substrings of a string in various ways. In general, text inputs allow only a single line.  The MULTILINE block accepts multi-line text input and can be used in text input slots of other blocks.",
 		"translations": {
@@ -1739,7 +1721,7 @@
 		"categories": ["operators"]
 	},
 	{
-		"fileName": "../snap/libraries/replace_letters_module.xml",
+		"fileName": "replace_letters_module.xml",
 		"name": "Replace Letters",
 		"description": "Replace all occurrences of a letter or a sequence of letters with another in a text.",
 		"translations": {
@@ -1752,7 +1734,7 @@
 		"categories": ["operators"]
 	},
 	{
-		"fileName": "../snap/libraries/apl.xml",
+		"fileName": "apl.xml",
 		"name": "APL primitives",
 		"description": "Adds features from the APL language supporting hyperblocks.",
 		"translations": {
@@ -1843,7 +1825,7 @@
 		"categories": ["lists", "operators", "other", "control"]
 	},
 	{
-		"fileName": "../snap/libraries/stream-tools.xml",
+		"fileName": "stream-tools.xml",
 		"name": "Streams (lazy lists)",
 		"description": "A variation on the list data type in which each list item isn't computed until it's needed, so you can construct million-item lists without really taking up all that time or memory, or even infinite-sized lists.  (A block that reports all the prime numbers is included as an example.)  See SICP 3.5 for a tutorial.",
 		"translations": {
@@ -1952,7 +1934,7 @@
 		"categories": ["Streams", "other", "variables", "control", "lists", "operators"]
 	},
 	{
-		"fileName": "../snap/libraries/bar-charts.xml",
+		"fileName": "bar-charts.xml",
 		"name": "Bar charts",
 		"description": "Takes a table (typically from a CSV data set) as input and reports a summary of the table grouped by the field in the specified column number.  The remaining three inputs are used only if the field values are numbers, in which case they can be grouped into buckets (e.g., decades, centuries, etc.).  Those three inputs specify the smallest and largest values of interest and, most importantly, the width of a bucket (10 for decades, 100 for centuries).  If the field isn't numeric, leave these three inputs empty or set them to zero.  In that case, each string value of the field is its own bucket, and they appear sorted alphabetically.  The block reports a new table with three columns.  The first column contains the bucket name or smallest number.  The second column contains a nonnegative integer that says how many records in the input table fall into this bucket.  The third column is a subtable containing the actual records from the original table that fall into the bucket.  If your buckets aren't of constant width, or you want to group by some function of more than one field, load the \"Frequency Distribution Analysis\" library instead.",
 		"translations": {
@@ -1996,7 +1978,7 @@
 		"categories": ["lists", "pen"]
 	},
 	{
-		"fileName": "../snap/libraries/plot_bars_module.xml",
+		"fileName": "plot_bars_module.xml",
 		"name": "Just Bars",
 		"description": "Draw a list of numbers as vertical lines distributed evenly across the stage.",
 		"translations": {
@@ -2009,7 +1991,7 @@
 		"categories": ["pen"]
 	},
 	{
-		"fileName": "../snap/libraries/httpBlocks.xml",
+		"fileName": "httpBlocks.xml",
 		"name": "Web services access (https)",
 		"description": "An extended version of the URL block that allows POST, PUT, and DELETE as well as GET requests, allows using the secure HTTPS protocol, and gives control over headers, etc.  Also parses JSON data.",
 		"translations": {
@@ -2091,7 +2073,7 @@
 		"categories": ["operators", "sensing"]
 	},
 	{
-		"fileName": "../snap/libraries/variable_declaration_module.xml",
+		"fileName": "variable_declaration_module.xml",
 		"name": "Declare & Initialize Script Variables",
 		"description": "Declare and initialize multiple script variables",
 		"searchData": ["let _"],
@@ -2108,7 +2090,7 @@
 		}
 	},
 	{
-		"fileName": "../snap/libraries/make-variables.xml",
+		"fileName": "make-variables.xml",
 		"name": "Create variables",
 		"description": "Create and manage global/sprite/script variables in a script",
 		"translations": {
@@ -2172,7 +2154,7 @@
 		"categories": ["variables"]
 	},
 	{
-		"fileName": "../snap/libraries/bitwise.xml",
+		"fileName": "bitwise.xml",
 		"name": "Bitwise operators",
 		"description": "Bitwise arithmetic operators for low-level bit manipulation.",
 		"translations": {
@@ -2193,7 +2175,7 @@
 		"categories": ["operators"]
 	},
 	{
-		"fileName": "../snap/libraries/textformat_module.xml",
+		"fileName": "textformat_module.xml",
 		"name": "Writing and formatting",
 		"description": "Write text using fancy fonts, contributed by Tethrarxitet",
 		"searchData": [
@@ -2229,7 +2211,7 @@
 		}
 	},
 	{
-		"fileName": "../snap/libraries/sprite_api_module.xml",
+		"fileName": "sprite_api_module.xml",
 		"name": "Sprite Method API",
 		"description": "Run and call a sprite's local custom blocks from another sprite",
 		"searchData": ["run api: _ . _ ( _ )", "call api: _ . _ ( _ )", "_ methods of _"],
@@ -2725,7 +2707,7 @@
 		"name": "~"
 	},
 	{
-		"fileName": "../snap/libraries/serial_module.xml",
+		"fileName": "serial_module.xml",
 		"name": "Serial Ports",
 		"description": "Connect to hardware extensions through the Web Serial API (Chromium, Chrome or Edge required)",
 		"translations": {
@@ -2906,7 +2888,7 @@
 		"name": "~"
 	},
 	{
-		"fileName": "../snap/libraries/metaprogramming_module.xml",
+		"fileName": "metaprogramming_module.xml",
 		"name": "Metaprogramming",
 		"description": "Analyze, transform and generate blocks and scripts",
 		"searchData": [
@@ -2928,7 +2910,7 @@
 		}
 	},
 	{
-		"fileName": "../snap/libraries/continuations_module.xml",
+		"fileName": "continuations_module.xml",
 		"name": "Continuations",
 		"description": "Capture runtime continuations to build fancy control structures",
 		"searchData": ["run _ with continuation", "call _ with continuation"],

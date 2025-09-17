@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script to copy all files from libraries/ to snap/libraries/ except LIBRARIES.json
+# Script to copy all files from snap/libraries/ to libraries/ except LIBRARIES.json
 # Usage: ./copy-libraries.sh
 
 # Set script directory and project root
@@ -8,10 +8,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
 # Source and destination directories
-SOURCE_DIR="$PROJECT_ROOT/libraries"
-DEST_DIR="$PROJECT_ROOT/snap/libraries"
+SOURCE_DIR="$PROJECT_ROOT/snap/libraries"
+DEST_DIR="$PROJECT_ROOT/libraries"
 
-echo "Copying library files from libraries/ to snap/libraries/"
+echo "Copying library files from snap/libraries/ to libraries/"
 echo "Source: $SOURCE_DIR"
 echo "Destination: $DEST_DIR"
 echo "Excluding: LIBRARIES.json"
