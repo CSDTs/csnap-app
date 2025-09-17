@@ -1,0 +1,86 @@
+[
+	{
+		"fileName": "adinkra-carvingxml",
+		"name": "Adinkra (Carving)"
+	},
+	{
+		"fileName": "adinkra-stamping.xml",
+		"name": "Adinkra (Stamping)"
+	},
+	{
+		"fileName": "adinkra-animations.xml",
+		"name": "Adinkra (Animations)"
+	},
+	{
+		"fileName": "quilting-anishinaabe.xml",
+		"name": "Quilting (Anishinaabe)"
+	},
+	{
+		"fileName": "quilting-geesbend.xml",
+		"name": "Quilting (Gee's Bend)"
+	},
+	{
+		"fileName": "quilting-fourdirections.xml",
+		"name": "Quilting (Four Directions)"
+	},
+	{
+		"fileName": "quilting-appalachian.xml",
+		"name": "Quilting (Appalachian)"
+	},
+	{
+		"fileName": "quilting-lakota.xml",
+		"name": "Quilting (Lakota)"
+	},
+	{
+		"fileName": "henna-curves.xml",
+		"name": "Henna (Curves)"
+	},
+	{
+		"fileName": "henna-flowers.xml",
+		"name": "Henna (Flowers)"
+	},
+	{
+		"fileName": "henna-vines.xml",
+		"name": "Henna (Vines)"
+	},
+	{
+		"fileName": "henna-straight.xml",
+		"name": "Henna (Straight Lines)"
+	},
+	{
+		"fileName": "scifi-bailey.xml",
+		"name": "Afrofuturism (Bailey)"
+	},
+	{
+		"fileName": "scifi-biggers.xml",
+		"name": "Afrofuturism (Biggers)"
+	},
+	{
+		"fileName": "scifi-nontsi.xml",
+		"name": "Afrofuturism (Nontsi)"
+	},
+	{
+		"fileName": "scifi-saya.xml",
+		"name": "Afrofuturism (Saya)"
+	},
+	{
+		"fileName": "cornrow-curves.xml",
+		"name": "Cornrow Curves"
+	},
+	{
+		"fileName": "graffiti.xml",
+		"name": "Graffiti"
+	},
+	{
+		"fileName": "bead-loom.xml",
+		"name": "Bead Loom"
+	},
+	{
+		"fileName": "yarnart-polar.xml",
+		"name": "Yarn Art (Polar)"
+	},
+	{
+		"fileName": "yarnart-rect.xml",
+		"name": "Yarn Art (Rectangular)"
+	}
+]

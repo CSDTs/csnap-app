@@ -361,7 +361,7 @@ Cloud.prototype.getThumbnail = function (url, onSuccess, onError) {
 	fetch(url)
 		.then((res) => {
 			if (res.ok) texture = url;
-			else texture = this.determineCloudDomain() + "/csnap_pro/csdt/img/project_placeholder.png";
+			else texture = this.determineCloudDomain() + "/csdt/img/project_placeholder.png";
 			return texture;
 		})
 		.finally(() => {

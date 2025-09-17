@@ -1,0 +1,1454 @@
+[
+	{
+		"fileName": "anishinaabe-berry.png",
+		"name": "berry",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "anishinaabe-bigpetal.png",
+		"name": "big petal",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "anishinaabe-bud1.png",
+		"name": "bud 1",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "anishinaabe-flower1.png",
+		"name": "flower 1",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "anishinaabe-flower2.png",
+		"name": "flower 2",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "anishinaabe-leaf1.png",
+		"name": "leaf 1",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "anishinaabe-medicinewheel.png",
+		"name": "medicine wheel",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "anishinaabe-petal.png",
+		"name": "petal",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "anishinaabe-petal2.png",
+		"name": "petal 2",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "appalachian-blond.png",
+		"name": "appalachian blond",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "appalachian-green.png",
+		"name": "appalachian green",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "appalachian-plaid.png",
+		"name": "appalachian plaid",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "appalachian-rose.png",
+		"name": "appalachian rose",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "appalachian-white.png",
+		"name": "appalachian white",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "fourdirections-head.png",
+		"name": "head",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "fourdirections-human.png",
+		"name": "human",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "fourdirections-kite.png",
+		"name": "kite",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "fourdirections-rhombus1.png",
+		"name": "rhombus1",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "fourdirections-rhombus2.png",
+		"name": "rhombus2",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "fourdirections-triangle1.png",
+		"name": "triangle1",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "fourdirections-triangle2.png",
+		"name": "triangle2",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "fourdirections-turtle_island.png",
+		"name": "turtle_island",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "fourdirections-turtlefoot.png",
+		"name": "turtlefoot",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "fourdirections-turtlehead.png",
+		"name": "turtlehead",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "gees-gb_unit1.png",
+		"name": "unit 1",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "gees-gb_unit2.png",
+		"name": "unit 2",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "gees-stripe.png",
+		"name": "stripe",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "gees-stripes.png",
+		"name": "stripes",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "gees-stripes3.png",
+		"name": "stripes3",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "lakota-rhombus.png",
+		"name": "rhombus",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "lakota-rhombus1.png",
+		"name": "rhombus1",
+		"category": "Quilting",
+		"translations": {}
+	},
+	{
+		"fileName": "socialjustice-breakTheseChains.png",
+		"name": "breakTheseChains",
+		"category": "Social Justice",
+		"translations": {}
+	},
+	{
+		"fileName": "socialjustice-dontShoot.png",
+		"name": "dontShoot",
+		"category": "Social Justice",
+		"translations": {}
+	},
+	{
+		"fileName": "socialjustice-dove.png",
+		"name": "dove",
+		"category": "Social Justice",
+		"translations": {}
+	},
+	{
+		"fileName": "socialjustice-dreads2.png",
+		"name": "dreads2",
+		"category": "Social Justice",
+		"translations": {}
+	},
+	{
+		"fileName": "socialjustice-fist.png",
+		"name": "fist",
+		"category": "Social Justice",
+		"translations": {}
+	},
+	{
+		"fileName": "socialjustice-heart.png",
+		"name": "heart",
+		"category": "Social Justice",
+		"translations": {}
+	},
+	{
+		"fileName": "socialjustice-hipHop.png",
+		"name": "hipHop",
+		"category": "Social Justice",
+		"translations": {}
+	},
+	{
+		"fileName": "socialjustice-libertyBell.png",
+		"name": "libertyBell",
+		"category": "Social Justice",
+		"translations": {}
+	},
+	{
+		"fileName": "socialjustice-micHand.png",
+		"name": "micHand",
+		"category": "Social Justice",
+		"translations": {}
+	},
+	{
+		"fileName": "socialjustice-peace2.png",
+		"name": "peace2",
+		"category": "Social Justice",
+		"translations": {}
+	},
+	{
+		"fileName": "socialjustice-quincunx.png",
+		"name": "quincunx",
+		"category": "Social Justice",
+		"translations": {}
+	},
+	{
+		"fileName": "socialjustice-scaleOfJustice.png",
+		"name": "scaleOfJustice",
+		"category": "Social Justice",
+		"translations": {}
+	},
+	{
+		"fileName": "socialjustice-write.png",
+		"name": "write",
+		"category": "Social Justice",
+		"translations": {}
+	},
+	{
+		"fileName": "sports-motion0.png",
+		"name": "motion0",
+		"category": "Sports",
+		"translations": {}
+	},
+	{
+		"fileName": "sports-motion1.png",
+		"name": "motion1",
+		"category": "Sports",
+		"translations": {}
+	},
+	{
+		"fileName": "sports-motion2.png",
+		"name": "motion2",
+		"category": "Sports",
+		"translations": {}
+	},
+	{
+		"fileName": "sports-motion3.png",
+		"name": "motion3",
+		"category": "Sports",
+		"translations": {}
+	},
+	{
+		"fileName": "sports-motion4.png",
+		"name": "motion4",
+		"category": "Sports",
+		"translations": {}
+	},
+	{
+		"fileName": "adinkra-funtunfunefu.png",
+		"name": "funtunfunefu",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "adinkra-gyenayme.png",
+		"name": "gyenayme",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "adinkra-mmeredane.png",
+		"name": "mmeredane",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "adinkra-mpatapo.png",
+		"name": "mpatapo",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "adinkra-mpuannum.png",
+		"name": "mpuannum",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "adinkra-odonnyewfiekwan.png",
+		"name": "odonnyewfiekwan",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "adinkra-sankofa.png",
+		"name": "sankofa",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "adinkra-sepow.png",
+		"name": "sepow",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "adinkra-adinkrahene.png",
+		"name": "adinkrahene",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "adinkra-akokonan.png",
+		"name": "akokonan",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "adinkra-akoma.png",
+		"name": "akoma",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "adinkra-ananse.png",
+		"name": "ananse",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "adinkra-asaseyeduru.png",
+		"name": "asaseyeduru",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "adinkra-aya.png",
+		"name": "aya",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "adinkra-dwennimmen.png",
+		"name": "dwennimmen",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "adinkra-epa.png",
+		"name": "epa",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "eban.png",
+		"name": "eban",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "akofena.png",
+		"name": "akofena",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "akon.png",
+		"name": "akoma ntoso",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "bese.png",
+		"name": "bese saka",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "bink.png",
+		"name": "bi nka bi",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "boam.png",
+		"name": "boa me na me mmoa wo",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "denk.png",
+		"name": "denkyem",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "duafe.png",
+		"name": "duafe",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "esen.png",
+		"name": "ese ne tekrema",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "fawo.png",
+		"name": "fawohodie",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "fiha.png",
+		"name": "fihankra",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "fofo.png",
+		"name": "fofo",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "hwem.png",
+		"name": "hwemudua",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "hyew.png",
+		"name": "hye wonhye",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "ketepa.png",
+		"name": "kete pa",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "kint.png",
+		"name": "kintinkantan",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "kwat.png",
+		"name": "kwatakye atiko",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "mate.png",
+		"name": "nate masie",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "mewarewo.png",
+		"name": "me ware wo",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "mfra.png",
+		"name": "mframadan",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "mmus.png",
+		"name": "mmusuyidee",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "neao.png",
+		"name": "nea onnim no sua a, ohu",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "neaope.png",
+		"name": "nea ope se obedi hene",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "nkon.png",
+		"name": "nkonsonkonson",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "nyamedua.png",
+		"name": "nyame dua",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "nkyi.png",
+		"name": "nkyinkyim",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "nsaa.png",
+		"name": "nsaa",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "nsor.png",
+		"name": "nsoromma",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "nyabi.png",
+		"name": "nyame biribi wo soro",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "nyawu.png",
+		"name": "nyame nnwu na mawu",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "nyame-nti.png",
+		"name": "nyame nti",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "nyameohene.png",
+		"name": "nyame ye ohene",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "nyan.png",
+		"name": "nyansapo",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "okodee.png",
+		"name": "okodee mmowere",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "onyan.png",
+		"name": "onyankopon adom nti biribiara beye yie",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "osra.png",
+		"name": "osram ne nssoromma",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "owof.png",
+		"name": "owo foro adobe",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "owuo-atwedee.png",
+		"name": "owuo atwedee",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "pemp.png",
+		"name": "pempansie",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "sesa.png",
+		"name": "sesa wo suban",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "tamf.png",
+		"name": "tamfo bebre",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "wawa.png",
+		"name": "wawa aba",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "wofo.png",
+		"name": "woforo dua pa a",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "wonsa.png",
+		"name": "wo nsa da mu a",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "nkyimu.png",
+		"name": "nkyimu",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "dame.png",
+		"name": "dame-dame",
+		"category": "Adinkra",
+		"translations": {}
+	},
+	{
+		"fileName": "moneybag1.png",
+		"name": "money bag",
+		"category": "Social Justice",
+		"translations": {}
+	},
+	{
+		"fileName": "tear.png",
+		"name": "teardrop",
+		"category": "Social Justice",
+		"translations": {}
+	},
+	{
+		"fileName": "forbiddensign.png",
+		"name": "forbidden sign",
+		"category": "Social Justice",
+		"translations": {}
+	},
+	{
+		"fileName": "equality.png",
+		"name": "equality",
+		"category": "Social Justice",
+		"translations": {}
+	},
+	{
+		"fileName": "dove.png",
+		"name": "dove2",
+		"category": "Social Justice",
+		"translations": {}
+	},
+	{
+		"fileName": "crown.png",
+		"name": "crown",
+		"category": "Social Justice",
+		"translations": {}
+	},
+	{
+		"fileName": "hands.png",
+		"name": "hands",
+		"category": "Social Justice",
+		"translations": {}
+	},
+	{
+		"fileName": "tupac.png",
+		"name": "Tupac",
+		"category": "Musicians",
+		"translations": {}
+	},
+	{
+		"fileName": "martinluther.png",
+		"name": "MLK",
+		"category": "Inspirational People",
+		"translations": {}
+	},
+	{
+		"fileName": "harriett-tubman.png",
+		"name": "Harriet Tubman",
+		"category": "Inspirational People",
+		"translations": {}
+	},
+	{
+		"fileName": "mlk.png",
+		"name": "MLK2",
+		"category": "Inspirational People",
+		"translations": {}
+	},
+	{
+		"fileName": "barack_obama.png",
+		"name": "Barack Obama",
+		"category": "Inspirational People",
+		"translations": {}
+	},
+	{
+		"fileName": "george_floyd.png",
+		"name": "George Floyd",
+		"category": "Inspirational People",
+		"translations": {}
+	},
+	{
+		"fileName": "malcolmx.png",
+		"name": "Malcolm X",
+		"category": "Inspirational People",
+		"translations": {}
+	},
+	{
+		"fileName": "angeladavis.png",
+		"name": "Angela Davis",
+		"category": "Inspirational People",
+		"translations": {}
+	},
+	{
+		"fileName": "blackpanther.png",
+		"name": "Black Panther",
+		"category": "Inspirational People",
+		"translations": {}
+	},
+	{
+		"fileName": "chadwick-boseman.png",
+		"name": "Chadwick Boseman",
+		"category": "Inspirational People",
+		"translations": {}
+	},
+	{
+		"fileName": "mae_jemison.png",
+		"name": "Mae Jemison",
+		"category": "Inspirational People",
+		"translations": {}
+	},
+	{
+		"fileName": "neil-degrasse-tyson.png",
+		"name": "Neil Degrasse Tyson",
+		"category": "Inspirational People",
+		"translations": {}
+	},
+	{
+		"fileName": "suri.png",
+		"name": "Shuri",
+		"category": "Inspirational People",
+		"translations": {}
+	},
+	{
+		"fileName": "juicewrld.gif",
+		"name": "Juice Wrld",
+		"category": "Musicians",
+		"translations": {}
+	},
+	{
+		"fileName": "soccer1.png",
+		"name": "Soccer1",
+		"category": "Sports",
+		"translations": {}
+	},
+	{
+		"fileName": "soccer2.png",
+		"name": "Soccer2",
+		"category": "Sports",
+		"translations": {}
+	},
+	{
+		"fileName": "soccer3.png",
+		"name": "Soccer3",
+		"category": "Sports",
+		"translations": {}
+	},
+	{
+		"fileName": "soccer4.png",
+		"name": "Soccer4",
+		"category": "Sports",
+		"translations": {}
+	},
+	{
+		"fileName": "dance1.png",
+		"name": "Dance1",
+		"category": "Sports",
+		"translations": {}
+	},
+	{
+		"fileName": "dance2.png",
+		"name": "Dance2",
+		"category": "Sports",
+		"translations": {}
+	},
+	{
+		"fileName": "dance3.png",
+		"name": "Dance3",
+		"category": "Sports",
+		"translations": {}
+	},
+	{
+		"fileName": "dance4.png",
+		"name": "Dance4",
+		"category": "Sports",
+		"translations": {}
+	},
+	{
+		"fileName": "bulldog.png",
+		"name": "Bulldog",
+		"category": "Animals",
+		"translations": {}
+	},
+	{
+		"fileName": "alicia-garza.png",
+		"name": "Alicia Garza",
+		"category": "Inspirational People",
+		"translations": {}
+	},
+	{
+		"fileName": "black-arts-matter.png",
+		"name": "Black Arts Matter",
+		"category": "Social Justice",
+		"translations": {}
+	},
+	{
+		"fileName": "peace-sign.png",
+		"name": "Peace Sign",
+		"category": "Social Justice",
+		"translations": {}
+	},
+	{
+		"fileName": "political-solidarity.png",
+		"name": "Political Solidarity Activism",
+		"category": "Social Justice",
+		"translations": {}
+	},
+	{
+		"fileName": "cat.png",
+		"name": "Cat",
+		"category": "Animals",
+		"translations": {}
+	},
+	{
+		"fileName": "headphones.png",
+		"name": "Headphones",
+		"category": "Misc",
+		"translations": {}
+	},
+	{
+		"fileName": "headphones-2.png",
+		"name": "Headphones 2",
+		"category": "Misc",
+		"translations": {}
+	},
+	{
+		"fileName": "hyena.png",
+		"name": "Hyena",
+		"category": "Animals",
+		"translations": {}
+	},
+	{
+		"fileName": "lion.png",
+		"name": "Lion",
+		"category": "Animals",
+		"translations": {}
+	},
+	{
+		"fileName": "mustang.png",
+		"name": "Mustang",
+		"category": "Animals",
+		"translations": {}
+	},
+	{
+		"fileName": "mustang-2.png",
+		"name": "Mustang 2",
+		"category": "Animals",
+		"translations": {}
+	},
+	{
+		"fileName": "panther-1.png",
+		"name": "Panther",
+		"category": "Animals",
+		"translations": {}
+	},
+	{
+		"fileName": "panther-2.png",
+		"name": "Panther 2",
+		"category": "Animals",
+		"translations": {}
+	},
+	{
+		"fileName": "panther-3.png",
+		"name": "Panther 3",
+		"category": "Animals",
+		"translations": {}
+	},
+	{
+		"fileName": "tiger.png",
+		"name": "Tiger",
+		"category": "Animals",
+		"translations": {}
+	},
+	{
+		"fileName": "kamala-harris.png",
+		"name": "Kamala Harris",
+		"category": "Inspirational People",
+		"translations": {}
+	},
+	{
+		"fileName": "unity-hands.png",
+		"name": "Unity",
+		"category": "Social Justice",
+		"translations": {}
+	},
+	{
+		"fileName": "the-weeknd.png",
+		"name": "The Weeknd",
+		"category": "Musicians",
+		"translations": {}
+	},
+	{
+		"fileName": "the-weeknd-2.png",
+		"name": "The Weeknd 2",
+		"category": "Musicians",
+		"translations": {}
+	},
+	{
+		"fileName": "SZA.png",
+		"name": "SZA",
+		"category": "Musicians",
+		"translations": {}
+	},
+	{
+		"fileName": "SZA-2.png",
+		"name": "SZA 2",
+		"category": "Musicians",
+		"translations": {}
+	},
+	{
+		"fileName": "rihanna.png",
+		"name": "Rihanna",
+		"category": "Musicians",
+		"translations": {}
+	},
+	{
+		"fileName": "pharrel.png",
+		"name": "Pharrel",
+		"category": "Musicians",
+		"translations": {}
+	},
+	{
+		"fileName": "pharrel-2.png",
+		"name": "Pharrel 2",
+		"category": "Musicians",
+		"translations": {}
+	},
+	{
+		"fileName": "notoriousBIG.png",
+		"name": "Notorious B.I.G.",
+		"category": "Musicians",
+		"translations": {}
+	},
+	{
+		"fileName": "nicki-minaj.png",
+		"name": "Nicki Minaj",
+		"category": "Musicians",
+		"translations": {}
+	},
+	{
+		"fileName": "nicki-minaj-2.png",
+		"name": "Nicki Minaj 2",
+		"category": "Musicians",
+		"translations": {}
+	},
+	{
+		"fileName": "mlk-3.png",
+		"name": "Martin Luther King Jr.",
+		"category": "Inspirational People",
+		"translations": {}
+	},
+	{
+		"fileName": "lilWayne-2.png",
+		"name": "Lil Wayne 2",
+		"category": "Musicians",
+		"translations": {}
+	},
+	{
+		"fileName": "lil-wayne.png",
+		"name": "Lil Wayne",
+		"category": "Musicians",
+		"translations": {}
+	},
+	{
+		"fileName": "kendrick-lamar.png",
+		"name": "Kendrick Lamar",
+		"category": "Musicians",
+		"translations": {}
+	},
+	{
+		"fileName": "kendrick-lamar-2.png",
+		"name": "Kendrick Lamar 2",
+		"category": "Musicians",
+		"translations": {}
+	},
+	{
+		"fileName": "kanye-west.png",
+		"name": "Kayne West",
+		"category": "Musicians",
+		"translations": {}
+	},
+	{
+		"fileName": "jayZ.png",
+		"name": "Jay-Z",
+		"category": "Musicians",
+		"translations": {}
+	},
+	{
+		"fileName": "hands-2.png",
+		"name": "Holding Hands",
+		"category": "Social Justice",
+		"translations": {}
+	},
+	{
+		"fileName": "face.png",
+		"name": "Face",
+		"category": "Musicians",
+		"translations": {}
+	},
+	{
+		"fileName": "easyE.png",
+		"name": "Easy E",
+		"category": "Musicians",
+		"translations": {}
+	},
+	{
+		"fileName": "drake.png",
+		"name": "Drake",
+		"category": "Musicians",
+		"translations": {}
+	},
+	{
+		"fileName": "cardiB.png",
+		"name": "Cardi B",
+		"category": "Musicians",
+		"translations": {}
+	},
+	{
+		"fileName": "cardiB-2.png",
+		"name": "Cardi B 2",
+		"category": "Musicians",
+		"translations": {}
+	},
+	{
+		"fileName": "beyonce.png",
+		"name": "Beyonce",
+		"category": "Musicians",
+		"translations": {}
+	},
+	{
+		"fileName": "beyonce-2.png",
+		"name": "Beyonce",
+		"category": "Musicians",
+		"translations": {}
+	},
+	{
+		"fileName": "american_flag.png",
+		"name": "American Flag",
+		"category": "AST Base",
+		"translations": {}
+	},
+	{
+		"fileName": "american_gothic.jpg",
+		"name": "American Gothic",
+		"category": "AST Base",
+		"translations": {}
+	},
+	{
+		"fileName": "caduceus.png",
+		"name": "Caduceus",
+		"category": "AST Base",
+		"translations": {}
+	},
+	{
+		"fileName": "campbell_soup.jpg",
+		"name": "Campbells Soup",
+		"category": "AST Base",
+		"translations": {}
+	},
+	{
+		"fileName": "dove_base.png",
+		"name": "Dove",
+		"category": "AST Base",
+		"translations": {}
+	},
+	{
+		"fileName": "einstein.jpg",
+		"name": "Albert Einstein",
+		"category": "AST Base",
+		"translations": {}
+	},
+	{
+		"fileName": "frederick_douglass.jpg",
+		"name": "Frederick Douglass",
+		"category": "AST Base",
+		"translations": {}
+	},
+	{
+		"fileName": "george_washington.jpg",
+		"name": "George Washington",
+		"category": "AST Base",
+		"translations": {}
+	},
+	{
+		"fileName": "handshake_of_solidarity.jpg",
+		"name": "Handshake of Solidarity",
+		"category": "AST Base",
+		"translations": {}
+	},
+	{
+		"fileName": "jemison.jpg",
+		"name": "Mae Jemison",
+		"category": "AST Base",
+		"translations": {}
+	},
+	{
+		"fileName": "m_toni_morrison.jpeg",
+		"name": "Toni Morrison",
+		"category": "AST Base",
+		"translations": {}
+	},
+	{
+		"fileName": "millenium_falcon.jpg",
+		"name": "Millenium Falcon",
+		"category": "AST Base",
+		"translations": {}
+	},
+	{
+		"fileName": "mona_lisa.jpg",
+		"name": "Mona Lisa",
+		"category": "AST Base",
+		"translations": {}
+	},
+	{
+		"fileName": "obama.jpg",
+		"name": "Barack Obama",
+		"category": "AST Base",
+		"translations": {}
+	},
+	{
+		"fileName": "pdiddy.jpg",
+		"name": "P Diddy",
+		"category": "AST Base",
+		"translations": {}
+	},
+	{
+		"fileName": "pug.jpg",
+		"name": "Pug",
+		"category": "AST Base",
+		"translations": {}
+	},
+	{
+		"fileName": "rhianna.jpg",
+		"name": "Rhianna",
+		"category": "AST Base",
+		"translations": {}
+	},
+	{
+		"fileName": "sacagawea.jpg",
+		"name": "Sacagawea",
+		"category": "AST Base",
+		"translations": {}
+	},
+	{
+		"fileName": "statue_of_liberty.jpg",
+		"name": "Statue of Liberty",
+		"category": "AST Base",
+		"translations": {}
+	},
+	{
+		"fileName": "the_thinker.jpg",
+		"name": "The Thinker",
+		"category": "AST Base",
+		"translations": {}
+	},
+	{
+		"fileName": "two_hands.jpeg",
+		"name": "Two Hands",
+		"category": "AST Base",
+		"translations": {}
+	},
+	{
+		"fileName": "art-1.png",
+		"name": "Yayoi Kusama",
+		"category": "AST Base",
+		"translations": {}
+	},
+	{
+		"fileName": "art-2.png",
+		"name": "Salvador Dalí",
+		"category": "AST Base",
+		"translations": {}
+	},
+	{
+		"fileName": "art-3.png",
+		"name": "Van Gogh",
+		"category": "AST Base",
+		"translations": {}
+	},
+	{
+		"fileName": "art-4.png",
+		"name": "Jean-Michel Basquiat",
+		"category": "AST Base",
+		"translations": {}
+	},
+	{
+		"fileName": "art-5.png",
+		"name": "Andy Warhol",
+		"category": "AST Base",
+		"translations": {}
+	},
+	{
+		"fileName": "adinkra_cloth.png",
+		"name": "Adinkra Cloth",
+		"category": "AST Style",
+		"translations": {}
+	},
+	{
+		"fileName": "adire_cloth.png",
+		"name": "Adire Cloth",
+		"category": "AST Style",
+		"translations": {}
+	},
+	{
+		"fileName": "gara.png",
+		"name": "Gara Cloth",
+		"category": "AST Style",
+		"translations": {}
+	},
+	{
+		"fileName": "kente_cloth.png",
+		"name": "Kente Cloth",
+		"category": "AST Style",
+		"translations": {}
+	},
+	{
+		"fileName": "kuba_cloth.png",
+		"name": "Kuba Cloth",
+		"category": "AST Style",
+		"translations": {}
+	},
+	{
+		"fileName": "mud_cloth.png",
+		"name": "Mud Cloth",
+		"category": "AST Style",
+		"translations": {}
+	},
+	{
+		"fileName": "ndebelle_mural.png",
+		"name": "Ndebelle Mural",
+		"category": "AST Style",
+		"translations": {}
+	},
+	{
+		"fileName": "zulu_basket.png",
+		"name": "Zulu Basket",
+		"category": "AST Style",
+		"translations": {}
+	},
+	{
+		"fileName": "barong-bangkal-rs.png",
+		"name": "Barong Bangkal",
+		"category": "Bali",
+		"translations": {}
+	},
+	{
+		"fileName": "barong-gajah-rs.png",
+		"name": "Barong Gajah",
+		"category": "Bali",
+		"translations": {}
+	},
+	{
+		"fileName": "barong-gajah.png",
+		"name": "Barong Gajah",
+		"category": "Bali",
+		"translations": {}
+	},
+	{
+		"fileName": "barong-ket-ear.png",
+		"name": "Barong Ket Ear",
+		"category": "Bali",
+		"translations": {}
+	},
+	{
+		"fileName": "barong-ket-fur.png",
+		"name": "Barong Ket Fur",
+		"category": "Bali",
+		"translations": {}
+	},
+	{
+		"fileName": "barong-ket-mouth.png",
+		"name": "Barong Ket Mouth",
+		"category": "Bali",
+		"translations": {}
+	},
+	{
+		"fileName": "barong-ket-nose.png",
+		"name": "Barong Ket Nose",
+		"category": "Bali",
+		"translations": {}
+	},
+	{
+		"fileName": "barong-ket-rs.png",
+		"name": "Barong Ket",
+		"category": "Bali",
+		"translations": {}
+	},
+	{
+		"fileName": "barong-macan-rs.png",
+		"name": "Barong Macan",
+		"category": "Bali",
+		"translations": {}
+	},
+	{
+		"fileName": "eyes-jaran-guyang.png",
+		"name": "Eyes Jaran Guyang",
+		"category": "Bali",
+		"translations": {}
+	},
+	{
+		"fileName": "fangs-jaran-guyang.png",
+		"name": "Fangs Jaran Guyang",
+		"category": "Bali",
+		"translations": {}
+	},
+	{
+		"fileName": "flame.png",
+		"name": "Flame",
+		"category": "Bali",
+		"translations": {}
+	},
+	{
+		"fileName": "hanuman-crown.png",
+		"name": "Hanuman Crown",
+		"category": "Bali",
+		"translations": {}
+	},
+	{
+		"fileName": "hanuman-ear.png",
+		"name": "Hanuman Ear",
+		"category": "Bali",
+		"translations": {}
+	},
+	{
+		"fileName": "hanuman-filigree.png",
+		"name": "Hanuman Filigree",
+		"category": "Bali",
+		"translations": {}
+	},
+	{
+		"fileName": "hanuman-fur.png",
+		"name": "Hanuman Fur",
+		"category": "Bali",
+		"translations": {}
+	},
+	{
+		"fileName": "hanuman-mouth.png",
+		"name": "Hanuman Mouth",
+		"category": "Bali",
+		"translations": {}
+	},
+	{
+		"fileName": "hanuman-round-filigree.png",
+		"name": "Hanuman Round Filigree",
+		"category": "Bali",
+		"translations": {}
+	},
+	{
+		"fileName": "hanuman-rs.png",
+		"name": "Hanuman",
+		"category": "Bali",
+		"translations": {}
+	},
+	{
+		"fileName": "jaran-guyang-tongue.png",
+		"name": "Jaran Guyang Tongue",
+		"category": "Bali",
+		"translations": {}
+	},
+	{
+		"fileName": "jayatu-rs.png",
+		"name": "Jayatu",
+		"category": "Bali",
+		"translations": {}
+	},
+	{
+		"fileName": "make-a-scene-dragon-rs.png",
+		"name": "Make a Scene Dragon",
+		"category": "Bali",
+		"translations": {}
+	},
+	{
+		"fileName": "nose-jaran-guyang.png",
+		"name": "Nose Jaran Guyang",
+		"category": "Bali",
+		"translations": {}
+	},
+	{
+		"fileName": "pak-kaler-surata-rs.png",
+		"name": "Pak Kaler Surata",
+		"category": "Bali",
+		"translations": {}
+	},
+	{
+		"fileName": "pak-ron-eglash-rs.png",
+		"name": "Pak Ron Eglash",
+		"category": "Bali",
+		"translations": {}
+	}
+]

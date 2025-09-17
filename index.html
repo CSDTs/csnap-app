@@ -1,8 +1,19 @@
 <!doctype html>
-<html>
+<html lang="en">
 	<head>
-		<title>Snap! Build Your Own Blocks</title>
+		<title>CSnap! 11.0.0 - Snap! with Culture</title>
 		<link rel="icon" href="./snap/src/favicon.ico" type="image/x-icon" />
+		<link rel="stylesheet" href="./style.css" />
+		<script type="text/javascript">
+			let config = {
+				modules: [],
+				asset_path: "",
+				urls: {
+					demos_url: "demo.xml",
+					goals_url: "goals.xml",
+				},
+			};
+		</script>
 		<link rel="manifest" href="./snap/manifest.json" />
 		<link rel="apple-touch-icon" href="./snap/img/snap-icon-152.png" />
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -13,7 +24,13 @@
 		<meta name="mobile-web-app-title" content="Snap!" />
 		<meta name="msapplication-TileImage" content="img/snap-icon-144.png" />
 		<meta name="msapplication-TileColor" content="#FFFFFF" />
+
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
+
 		<script src="./snap/src/morphic.js?version=2025-03-20"></script>
+		<script src="./csnap/morphic.js"></script>
+
 		<script src="./snap/src/symbols.js?version=2024-11-24"></script>
 		<script src="./snap/src/widgets.js?version=2025-03-17"></script>
 
@@ -21,6 +38,7 @@
 		<script src="./csnap/blocks.js"></script>
 
 		<script src="./snap/src/threads.js?version=2025-08-18"></script>
+		<script src="./csnap/threads.js"></script>
 
 		<script src="./snap/src/objects.js?version=2025-08-18"></script>
 		<script src="./csnap/objects.js"></script>
@@ -32,14 +50,23 @@
 
 		<script src="./snap/src/paint.js?version=2023-05-24"></script>
 		<script src="./snap/src/lists.js?version=2025-06-12"></script>
+
 		<script src="./snap/src/byob.js?version=2025-05-13"></script>
+		<script src="./csnap/byob.js"></script>
+
 		<script src="./snap/src/tables.js?version=2025-04-03"></script>
 		<script src="./snap/src/sketch.js?version=2023-05-24"></script>
 		<script src="./snap/src/video.js?version=2019-06-27"></script>
 		<script src="./snap/src/maps.js?version=2021-06-15"></script>
+
 		<script src="./snap/src/extensions.js?version=2025-06-03"></script>
+		<script src="./csnap/extensions.js"></script>
+
 		<script src="./snap/src/xml.js?version=2021-07-05"></script>
+
 		<script src="./snap/src/store.js?version=2025-04-01"></script>
+		<script src="./csnap/store.js"></script>
+
 		<script src="./snap/src/locale.js?version=2025-08-19"></script>
 
 		<script src="./snap/src/cloud.js?version=2023-04-12"></script>
@@ -49,6 +76,8 @@
 		<script src="./snap/src/embroider.js?version=2024-05-09"></script>
 		<script src="./snap/src/sha512.js?version=2019-06-27"></script>
 		<script src="./snap/src/FileSaver.min.js?version=2019-06-27"></script>
+
+		<script src="./csnap/tutorials.js"></script>
 		<script>
 			var world;
 			window.onload = function () {

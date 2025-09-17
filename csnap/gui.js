@@ -1,5 +1,5 @@
-export let classroomList = [];
-export let classroomListField = null;
+ProjectDialogMorph.prototype.classroomList = [];
+ProjectDialogMorph.prototype.classroomListField = null;
 
 ProjectDialogMorph.prototype.originalInit = ProjectDialogMorph.prototype.init;
 
@@ -711,7 +711,7 @@ IDE_Morph.prototype.init = function (config) {
 	this.tutorialMode = false;
 
 	// Applying correct asset path for projects
-	this.asset_path = "/csnap_pro/csdt/";
+	this.asset_path = "./";
 	////////////////////////////////
 
 	this.originalInit(config);
@@ -2759,7 +2759,7 @@ IDE_Morph.prototype.popupMediaImportDialog = function (folderName, items) {
 		msg,
 		listFieldWidth = 100;
 
-	let uniqueSections = [...new Set(items.map((item) => item.description))];
+	let uniqueSections = [...new Set(items.map((item) => item.category || "Uncategorized"))];
 	uniqueSections.push("All");
 
 	let createSpriteView = function (parent, items) {
@@ -2838,7 +2838,8 @@ IDE_Morph.prototype.popupMediaImportDialog = function (folderName, items) {
 			frame.fixLayout = nop;
 
 			// Filters costume by category
-			let currentSection = x.labelString === "All" ? items : items.filter((y) => y.description == x.labelString);
+			let currentSection =
+				x.labelString === "All" ? items : items.filter((y) => (y.category || "Uncategorized") == x.labelString);
 
 			createSpriteView(myself, currentSection);
 
@@ -3704,3 +3705,1162 @@ IDE_Morph.prototype.aboutSnap = function () {
 	translatorsBtn.hide();
 	dlg.fixLayout();
 };
+
+IDE_Morph.prototype.initializeCloud = function () {
+	var world = this.world();
+	new DialogBoxMorph(null, (user) =>
+		this.cloud.login(
+			user.username.toLowerCase(),
+			user.password,
+			user.choice,
+			(username, role, response) => {
+				sessionStorage.username = username;
+				this.controlBar.cloudButton.refresh();
+				this.source = "cloud";
+				// if (!isNil(response.days_left)) {
+				// 	var duration = response.days_left + " day" + (response.days_left > 1 ? "s" : "");
+				// 	new DialogBoxMorph().inform(
+				// 		"Unverified account: " +
+				// 			duration +
+				// 			" left" +
+				// 			"You are now logged in, and your account\n" +
+				// 			"is enabled for " +
+				// 			duration +
+				// 			".\n" +
+				// 			"Please use the verification link that\n" +
+				// 			"was sent to your email address when you\n" +
+				// 			"signed up.\n\n" +
+				// 			"If you cannot find that email, please\n" +
+				// 			"check your spam folder. If you still\n" +
+				// 			'cannot find it, please use the "Resend\n' +
+				// 			'Verification Email..." option in the cloud\n' +
+				// 			"menu.\n\n" +
+				// 			"You have " +
+				// 			duration +
+				// 			" left.",
+				// 		world,
+				// 		this.cloudIcon(null, new Color(0, 180, 0))
+				// 	);
+				// } else if (response.title) {
+				// 	new DialogBoxMorph().inform(
+				// 		response.title,
+				// 		response.message,
+				// 		world,
+				// 		this.cloudIcon(null, new Color(0, 180, 0))
+				// 	);
+				// } else {
+				// 	this.showMessage(response.message, 2);
+				// }
+				this.showMessage(`Welcome ${username}`, 2);
+			},
+			this.cloudError()
+		)
+	)
+		.withKey("cloudlogin")
+		.promptCredentials(
+			"Sign in",
+			"login",
+			null,
+			null,
+			null,
+			null,
+			"stay signed in on this computer\nuntil logging out",
+			world,
+			this.cloudIcon(),
+			this.cloudMsg
+		);
+};
+
+IDE_Morph.prototype.toggleTutorialMode = function () {
+	let myself = this;
+	console.log(`Tutorial Mode: ${myself.tutorialMode}`);
+};
+
+IDE_Morph.prototype.settingsMenu = function () {
+	var menu,
+		stage = this.stage,
+		world = this.world(),
+		pos = this.controlBar.settingsButton.bottomLeft(),
+		shiftClicked = world.currentKey === 16,
+		on = new SymbolMorph("checkedBox", MorphicPreferences.menuFontSize * 0.75),
+		off = new SymbolMorph("rectangle", MorphicPreferences.menuFontSize * 0.75);
+
+	function addPreference(label, toggle, test, onHint, offHint, hide) {
+		if (!hide || shiftClicked) {
+			menu.addItem(
+				[test ? on : off, localize(label)],
+				toggle,
+				test ? onHint : offHint,
+				hide ? new Color(100, 0, 0) : null
+			);
+		}
+	}
+
+	function addSubPreference(label, toggle, test, onHint, offHint, hide) {
+		if (!hide || shiftClicked) {
+			menu.addItem(
+				[test ? on : off, "  " + localize(label)],
+				toggle,
+				test ? onHint : offHint,
+				hide ? new Color(100, 0, 0) : null
+			);
+		}
+	}
+
+	menu = new MenuMorph(this);
+	menu.addPair([new SymbolMorph("globe", MorphicPreferences.menuFontSize), localize("Language...")], "languageMenu");
+	menu.addItem(localize("Looks") + "...", "looksMenu");
+	menu.addItem("Zoom blocks...", "userSetBlocksScale");
+	menu.addItem("Fade blocks...", "userFadeBlocks");
+	menu.addItem("Afterglow blocks...", "userSetBlocksAfterglow");
+	menu.addItem("Stage size...", "userSetStageSize");
+	if (shiftClicked) {
+		menu.addItem(
+			"Dragging threshold...",
+			"userSetDragThreshold",
+			"specify the distance the hand has to move\n" + "before it picks up an object",
+			new Color(100, 0, 0)
+		);
+	}
+	menu.addItem("Microphone resolution...", "microphoneMenu");
+	menu.addLine();
+	if (shiftClicked) {
+		menu.addItem(
+			"Primitives palette",
+			() => this.stage.restorePrimitives(),
+			"EXPERIMENTAL - switch (back) to\n" + "primitive blocks in the palette",
+			new Color(100, 0, 0)
+		);
+		menu.addItem(
+			"Customize primitives",
+			() => this.stage.customizeBlocks(),
+			"EXPERIMENTAL - overload primitives\n" + "with custom block definitions",
+			new Color(100, 0, 0)
+		);
+		menu.addLine();
+		addPreference(
+			"Blocks all the way",
+			() => {
+				if (SpriteMorph.prototype.isBlocksAllTheWay()) {
+					this.stage.restorePrimitives();
+				} else {
+					this.bootstrapCustomizedPrimitives(this.stage.customizeBlocks());
+				}
+			},
+			SpriteMorph.prototype.isBlocksAllTheWay(),
+			"uncheck to disable editing primitives\n" + "in the palette as custom blocks",
+			"check to edit primitives\nin the palette as custom blocks",
+			new Color(100, 0, 0)
+		);
+		if (SpriteMorph.prototype.hasCustomizedPrimitives()) {
+			menu.addItem(
+				"Use custom blocks",
+				() => SpriteMorph.prototype.toggleAllCustomizedPrimitives(this.stage, false),
+				"EXPERIMENTAL - use custom blocks\n" + "in all palette blocks",
+				new Color(100, 0, 0)
+			);
+			menu.addItem(
+				"Use primitives",
+				() => SpriteMorph.prototype.toggleAllCustomizedPrimitives(this.stage, true),
+				"EXPERIMENTAL - use primitives\n" + "in all palette blocks",
+				new Color(100, 0, 0)
+			);
+			menu.addLine();
+		}
+	}
+	addPreference(
+		"JavaScript extensions",
+		() => {
+			/*
+            if (!Process.prototype.enableJS) {
+                this.logout();
+            }
+            */
+			Process.prototype.enableJS = !Process.prototype.enableJS;
+			if (Process.prototype.enableJS) {
+				// show JS-func primitive in case a microworld hides it
+				delete StageMorph.prototype.hiddenPrimitives.reportJSFunction;
+			}
+			this.flushBlocksCache("operators");
+			this.refreshPalette();
+			this.categories.refreshEmpty();
+		},
+		Process.prototype.enableJS,
+		"uncheck to disable support for\nnative JavaScript functions",
+		"check to support\nnative JavaScript functions" /* +
+            '.\n' +
+            'NOTE: You will have to manually\n' +
+            'sign in again to access your account.' */
+	);
+	addPreference(
+		"Extension blocks",
+		() => {
+			SpriteMorph.prototype.showingExtensions = !SpriteMorph.prototype.showingExtensions;
+			this.flushBlocksCache("variables");
+			this.refreshPalette();
+			this.categories.refreshEmpty();
+		},
+		SpriteMorph.prototype.showingExtensions,
+		"uncheck to hide extension\nprimitives in the palette",
+		"check to show extension\nprimitives in the palette"
+	);
+	/*
+    addPreference(
+        'Add scenes',
+        () => this.isAddingScenes = !this.isAddingScenes,
+        this.isAddingScenes,
+        'uncheck to replace the current project,\nwith a new one',
+        'check to add other projects,\nto this one',
+        true
+    );
+    */
+	if (isRetinaSupported()) {
+		addPreference(
+			"Retina display support",
+			"toggleRetina",
+			isRetinaEnabled(),
+			"uncheck for lower resolution,\nsaves computing resources",
+			"check for higher resolution,\nuses more computing resources",
+			true
+		);
+	}
+	addPreference(
+		"Input sliders",
+		"toggleInputSliders",
+		MorphicPreferences.useSliderForInput,
+		"uncheck to disable\ninput sliders for\nentry fields",
+		"check to enable\ninput sliders for\nentry fields"
+	);
+	if (MorphicPreferences.useSliderForInput) {
+		addSubPreference(
+			"Execute on slider change",
+			"toggleSliderExecute",
+			ArgMorph.prototype.executeOnSliderEdit,
+			"uncheck to suppress\nrunning scripts\nwhen moving the slider",
+			"check to run\nthe edited script\nwhen moving the slider"
+		);
+	}
+	addPreference(
+		"Turbo mode",
+		"toggleFastTracking",
+		this.stage.isFastTracked,
+		"uncheck to run scripts\nat normal speed",
+		"check to prioritize\nscript execution"
+	);
+	addPreference(
+		"Visible stepping",
+		"toggleSingleStepping",
+		Process.prototype.enableSingleStepping,
+		"uncheck to turn off\nvisible stepping",
+		"check to turn on\n visible stepping (slow)",
+		false
+	);
+	addPreference(
+		"Log pen vectors",
+		() => (StageMorph.prototype.enablePenLogging = !StageMorph.prototype.enablePenLogging),
+		StageMorph.prototype.enablePenLogging,
+		"uncheck to turn off\nlogging pen vectors",
+		"check to turn on\nlogging pen vectors",
+		false
+	);
+	addPreference(
+		"Case sensitivity",
+		() => (Process.prototype.isCaseInsensitive = !Process.prototype.isCaseInsensitive),
+		!Process.prototype.isCaseInsensitive,
+		"uncheck to ignore upper- and\n lowercase when comparing texts",
+		"check to distinguish upper- and\n lowercase when comparing texts",
+		false
+	);
+	addPreference(
+		"Ternary Boolean slots",
+		() => (BooleanSlotMorph.prototype.isTernary = !BooleanSlotMorph.prototype.isTernary),
+		BooleanSlotMorph.prototype.isTernary,
+		"uncheck to limit\nBoolean slots to true / false",
+		"check to allow\nempty Boolean slots",
+		true
+	);
+	addPreference(
+		"Camera support",
+		"toggleCameraSupport",
+		CamSnapshotDialogMorph.prototype.enableCamera,
+		"uncheck to disable\ncamera support",
+		"check to enable\ncamera support",
+		true
+	);
+	addPreference(
+		"Dynamic sprite rendering",
+		() => (SpriteMorph.prototype.isCachingImage = !SpriteMorph.prototype.isCachingImage),
+		!SpriteMorph.prototype.isCachingImage,
+		"uncheck to render\nsprites dynamically",
+		"check to cache\nsprite renderings",
+		true
+	);
+	addPreference(
+		"Dynamic scheduling",
+		() => (StageMorph.prototype.enableQuicksteps = !StageMorph.prototype.enableQuicksteps),
+		StageMorph.prototype.enableQuicksteps,
+		"uncheck to schedule\nthreads framewise",
+		"check to quickstep\nthreads atomically",
+		true
+	);
+	addPreference(
+		"Performer mode",
+		() => this.togglePerformerMode(),
+		this.performerMode,
+		"uncheck to go back to regular\nlayout",
+		"check to have the stage use up\nall space and go behind the\n" + "scripting area"
+	);
+	if (this.performerMode) {
+		menu.addItem(
+			"Performer mode scale...",
+			"userSetPerformerModeScale",
+			"specify the scale of the stage\npixels in performer mode"
+		);
+	}
+	menu.addLine(); // everything visible below is persistent
+	addPreference(
+		"Blurred shadows",
+		"toggleBlurredShadows",
+		useBlurredShadows,
+		"uncheck to use solid drop\nshadows and highlights",
+		"check to use blurred drop\nshadows and highlights",
+		true
+	);
+	addPreference(
+		"Zebra coloring",
+		"toggleZebraColoring",
+		BlockMorph.prototype.zebraContrast,
+		"uncheck to disable alternating\ncolors for nested block",
+		"check to enable alternating\ncolors for nested blocks",
+		true
+	);
+	addPreference(
+		"Dynamic input labels",
+		"toggleDynamicInputLabels",
+		SyntaxElementMorph.prototype.dynamicInputLabels,
+		"uncheck to disable dynamic\nlabels for variadic inputs",
+		"check to enable dynamic\nlabels for variadic inputs",
+		true
+	);
+	addPreference(
+		"Prefer empty slot drops",
+		"togglePreferEmptySlotDrops",
+		ScriptsMorph.prototype.isPreferringEmptySlots,
+		"uncheck to allow dropped\nreporters to kick out others",
+		"settings menu prefer empty slots hint",
+		true
+	);
+	addPreference(
+		"Long form input dialog",
+		"toggleLongFormInputDialog",
+		InputSlotDialogMorph.prototype.isLaunchingExpanded,
+		"uncheck to use the input\ndialog in short form",
+		"check to always show slot\ntypes in the input dialog"
+	);
+	addPreference(
+		"Plain prototype labels",
+		"togglePlainPrototypeLabels",
+		BlockLabelPlaceHolderMorph.prototype.plainLabel,
+		"uncheck to always show (+) symbols\nin block prototype labels",
+		"check to hide (+) symbols\nin block prototype labels"
+	);
+	addPreference(
+		"Clicking sound",
+		() => {
+			BlockMorph.prototype.toggleSnapSound();
+			if (BlockMorph.prototype.snapSound) {
+				this.saveSetting("click", true);
+			} else {
+				this.removeSetting("click");
+			}
+		},
+		BlockMorph.prototype.snapSound,
+		"uncheck to turn\nblock clicking\nsound off",
+		"check to turn\nblock clicking\nsound on"
+	);
+	addPreference(
+		"Animations",
+		() => (this.isAnimating = !this.isAnimating),
+		this.isAnimating,
+		"uncheck to disable\nIDE animations",
+		"check to enable\nIDE animations",
+		true
+	);
+	/*
+    addPreference(
+        'Cache Inputs',
+        () => {
+            BlockMorph.prototype.isCachingInputs =
+                !BlockMorph.prototype.isCachingInputs;
+        },
+        BlockMorph.prototype.isCachingInputs,
+        'uncheck to stop caching\ninputs (for debugging the evaluator)',
+        'check to cache inputs\nboosts recursion',
+        true
+    );
+    */
+	addPreference(
+		"Rasterize SVGs",
+		() => (MorphicPreferences.rasterizeSVGs = !MorphicPreferences.rasterizeSVGs),
+		MorphicPreferences.rasterizeSVGs,
+		"uncheck for smooth\nscaling of vector costumes",
+		"check to rasterize\nSVGs on import",
+		true
+	);
+	addPreference(
+		"Nested auto-wrapping",
+		() => {
+			ScriptsMorph.prototype.enableNestedAutoWrapping = !ScriptsMorph.prototype.enableNestedAutoWrapping;
+			if (ScriptsMorph.prototype.enableNestedAutoWrapping) {
+				this.removeSetting("autowrapping");
+			} else {
+				this.saveSetting("autowrapping", false);
+			}
+		},
+		ScriptsMorph.prototype.enableNestedAutoWrapping,
+		"uncheck to confine auto-wrapping\nto top-level block stacks",
+		"check to enable auto-wrapping\ninside nested block stacks",
+		true
+	);
+	addPreference(
+		"Sprite Nesting",
+		() => (SpriteMorph.prototype.enableNesting = !SpriteMorph.prototype.enableNesting),
+		SpriteMorph.prototype.enableNesting,
+		"uncheck to disable\nsprite composition",
+		"check to enable\nsprite composition",
+		true
+	);
+	addPreference(
+		"First-Class Sprites",
+		() => {
+			SpriteMorph.prototype.enableFirstClass = !SpriteMorph.prototype.enableFirstClass;
+			this.flushBlocksCache("sensing");
+			this.refreshPalette();
+			this.categories.refreshEmpty();
+		},
+		SpriteMorph.prototype.enableFirstClass,
+		"uncheck to disable support\nfor first-class sprites",
+		"check to enable support\n for first-class sprite",
+		true
+	);
+	addPreference(
+		"Keyboard Editing",
+		() => {
+			ScriptsMorph.prototype.enableKeyboard = !ScriptsMorph.prototype.enableKeyboard;
+			this.currentSprite.scripts.updateToolbar();
+			if (ScriptsMorph.prototype.enableKeyboard) {
+				this.removeSetting("keyboard");
+			} else {
+				this.saveSetting("keyboard", false);
+			}
+		},
+		ScriptsMorph.prototype.enableKeyboard,
+		"uncheck to disable\nkeyboard editing support",
+		"check to enable\nkeyboard editing support",
+		true
+	);
+	addPreference(
+		"Table support",
+		() => {
+			List.prototype.enableTables = !List.prototype.enableTables;
+			if (List.prototype.enableTables) {
+				this.removeSetting("tables");
+			} else {
+				this.saveSetting("tables", false);
+			}
+		},
+		List.prototype.enableTables,
+		"uncheck to disable\nmulti-column list views",
+		"check for multi-column\nlist view support",
+		true
+	);
+	if (List.prototype.enableTables) {
+		addPreference(
+			"Table lines",
+			() => {
+				TableMorph.prototype.highContrast = !TableMorph.prototype.highContrast;
+				if (TableMorph.prototype.highContrast) {
+					this.saveSetting("tableLines", true);
+				} else {
+					this.removeSetting("tableLines");
+				}
+			},
+			TableMorph.prototype.highContrast,
+			"uncheck for less contrast\nmulti-column list views",
+			"check for higher contrast\ntable views",
+			true
+		);
+	}
+	addPreference(
+		"Live coding support",
+		() => (Process.prototype.enableLiveCoding = !Process.prototype.enableLiveCoding),
+		Process.prototype.enableLiveCoding,
+		"EXPERIMENTAL! uncheck to disable live\ncustom control structures",
+		"EXPERIMENTAL! check to enable\n live custom control structures",
+		true
+	);
+	addPreference(
+		"JIT compiler support",
+		() => {
+			Process.prototype.enableCompiling = !Process.prototype.enableCompiling;
+			this.flushBlocksCache("operators");
+			this.refreshPalette();
+			this.categories.refreshEmpty();
+		},
+		Process.prototype.enableCompiling,
+		"EXPERIMENTAL! uncheck to disable live\nsupport for compiling",
+		"EXPERIMENTAL! check to enable\nsupport for compiling",
+		true
+	);
+	menu.addLine(); // everything below this line is stored in the project
+	addPreference(
+		"Thread safe scripts",
+		() => (stage.isThreadSafe = !stage.isThreadSafe),
+		this.stage.isThreadSafe,
+		"uncheck to allow\nscript reentrance",
+		"check to disallow\nscript reentrance"
+	);
+	addPreference(
+		"Flat line ends",
+		() => (SpriteMorph.prototype.useFlatLineEnds = !SpriteMorph.prototype.useFlatLineEnds),
+		SpriteMorph.prototype.useFlatLineEnds,
+		"uncheck for round ends of lines",
+		"check for flat ends of lines"
+	);
+	addPreference(
+		"Codification support",
+		() => {
+			StageMorph.prototype.enableCodeMapping = !StageMorph.prototype.enableCodeMapping;
+			this.flushBlocksCache("variables");
+			this.refreshPalette();
+			this.categories.refreshEmpty();
+		},
+		StageMorph.prototype.enableCodeMapping,
+		"uncheck to disable\nblock to text mapping features",
+		"check for block\nto text mapping features",
+		false
+	);
+	addPreference(
+		"Inheritance support",
+		() => {
+			StageMorph.prototype.enableInheritance = !StageMorph.prototype.enableInheritance;
+			this.flushBlocksCache("variables");
+			this.refreshPalette();
+			this.categories.refreshEmpty();
+		},
+		StageMorph.prototype.enableInheritance,
+		"uncheck to disable\nsprite inheritance features",
+		"check for sprite\ninheritance features",
+		true
+	);
+	addPreference(
+		"Hyper blocks support",
+		() => (Process.prototype.enableHyperOps = !Process.prototype.enableHyperOps),
+		Process.prototype.enableHyperOps,
+		"uncheck to disable\nusing operators on lists and tables",
+		"check to enable\nusing operators on lists and tables",
+		true
+	);
+	addPreference(
+		"Tutorial mode",
+		() => {
+			IDE_Morph.prototype.tutorialMode = !IDE_Morph.prototype.tutorialMode;
+			IDE_Morph.prototype.toggleTutorialMode();
+		},
+		IDE_Morph.prototype.tutorialMode,
+		"uncheck to disable\ntutorial layout for project",
+		"check to enable\ntutorial layout for project",
+		false
+	);
+	addPreference(
+		"Full resolution support",
+		() => {
+			Costume.prototype.noFit = !Costume.prototype.noFit;
+		},
+		Costume.prototype.noFit,
+		"uncheck to disable\ntfull resolution for costumes",
+		"check to enable\nfull resolution for costumes",
+		false
+	);
+	addPreference(
+		"Single palette",
+		() => this.toggleUnifiedPalette(),
+		this.scene.unifiedPalette,
+		"uncheck to show only the selected category's blocks",
+		"check to show all blocks in a single palette",
+		false
+	);
+	if (this.scene.unifiedPalette) {
+		addSubPreference(
+			"Show categories",
+			() => this.toggleCategoryNames(),
+			this.scene.showCategories,
+			"uncheck to hide\ncategory names\nin the palette",
+			"check to show\ncategory names\nin the palette"
+		);
+		addSubPreference(
+			"Show buttons",
+			() => this.togglePaletteButtons(),
+			this.scene.showPaletteButtons,
+			"uncheck to hide buttons\nin the palette",
+			"check to show buttons\nin the palette"
+		);
+	}
+	addPreference(
+		"Wrap list indices",
+		() => {
+			List.prototype.enableWrapping = !List.prototype.enableWrapping;
+		},
+		List.prototype.enableWrapping,
+		"uncheck to disable\nwrapping list indices",
+		"check for wrapping\nlist indices",
+		true
+	);
+	addPreference(
+		"Persist linked sublist IDs",
+		() => (StageMorph.prototype.enableSublistIDs = !StageMorph.prototype.enableSublistIDs),
+		StageMorph.prototype.enableSublistIDs,
+		"uncheck to disable\nsaving linked sublist identities",
+		"check to enable\nsaving linked sublist identities",
+		true
+	);
+	addPreference(
+		"Enable command drops in all rings",
+		() => (RingReporterSlotMorph.prototype.enableCommandDrops = !RingReporterSlotMorph.prototype.enableCommandDrops),
+		RingReporterSlotMorph.prototype.enableCommandDrops,
+		"uncheck to disable\ndropping commands in reporter rings",
+		"check to enable\ndropping commands in all rings",
+		true
+	);
+
+	addPreference(
+		"HSL pen color model",
+		() => {
+			SpriteMorph.prototype.penColorModel = SpriteMorph.prototype.penColorModel === "hsl" ? "hsv" : "hsl";
+			this.refreshIDE();
+		},
+		SpriteMorph.prototype.penColorModel === "hsl",
+		"uncheck to switch pen colors\nand graphic effects to HSV",
+		"check to switch pen colors\nand graphic effects to HSL",
+		false
+	);
+
+	addPreference(
+		"Disable click-to-run",
+		() => (ThreadManager.prototype.disableClickToRun = !ThreadManager.prototype.disableClickToRun),
+		ThreadManager.prototype.disableClickToRun,
+		"uncheck to enable\ndirectly running blocks\nby clicking on them",
+		"check to disable\ndirectly running blocks\nby clicking on them",
+		false
+	);
+	addPreference(
+		"Disable dragging data",
+		() => (SpriteMorph.prototype.disableDraggingData = !SpriteMorph.prototype.disableDraggingData),
+		SpriteMorph.prototype.disableDraggingData,
+		"uncheck to drag media\nand blocks out of\nwatchers and balloons",
+		"disable dragging media\nand blocks out of\nwatchers and balloons",
+		false
+	);
+	menu.popup(world, pos);
+};
+
+IDE_Morph.prototype.rawOpenProjectString = function (str, noPrims) {
+	this.toggleAppMode(false);
+	this.spriteBar.tabBar.tabTo("scripts");
+	if (Process.prototype.isCatchingErrors) {
+		try {
+			this.openProject(this.serializer.load(str, this, noPrims));
+		} catch (err) {
+			this.showMessage("Load failed: " + err);
+		}
+	} else {
+		this.openProject(this.serializer.load(str, this, noPrims));
+	}
+
+	// Based on project, decide if it should be in presentation mode or not
+	this.toggleAppMode(config.presentation !== undefined ? true : false);
+
+	this.autoLoadExtensions();
+	this.stopFastTracking();
+};
+
+////////////////////////////////////////////////////////////////
+// STL Functionality
+// (the blocks are in objects.js towards the bottom of the file)
+////////////////////////////////////////////////////////////////
+
+function dataURItoBlob(dataURI) {
+	// convert base64 to raw binary data held in a string
+	const byteString = atob(dataURI.split(",")[1]);
+
+	// separate out the mime component
+	const mimeString = dataURI.split(",")[0].split(":")[1].split(";")[0];
+
+	// write the bytes of the string to an ArrayBuffer
+	const ab = new ArrayBuffer(byteString.length);
+	const ia = new Uint8Array(ab);
+	for (let i = 0; i < byteString.length; i++) {
+		ia[i] = byteString.charCodeAt(i);
+	}
+	return new Blob([ab], { type: mimeString });
+}
+
+function createText(string, size = 10) {
+	return new TextMorph(
+		localize(string),
+		size,
+		null, // style
+		false, // bold
+		null, // italic
+		null, // alignment
+		null, // width
+		null, // font name
+		MorphicPreferences.isFlat ? null : new Point(1, 1),
+		WHITE // shadowColor
+	);
+}
+
+function createLabelInput(alignment, label, input, width = 200) {
+	input.setWidth(width);
+	alignment.add(createText(label));
+	alignment.add(input);
+}
+
+function createFileFromStage(ide, payload) {
+	if (!ide) return;
+	let img_string = ide.stage.fullImage().toDataURL();
+	let img = new FormData();
+	img.append("file", dataURItoBlob(img_string), `${ide.getProjectName()}.png`);
+	img.append("params", JSON.stringify(payload));
+
+	return img;
+}
+
+function requestSTLConversion(file, ide) {
+	ide.cloud.getCSRFToken();
+	const success = function (data) {
+		if (data.stl) {
+			downloadSTL(data.stl, ide.getProjectName());
+			ide.showMessage("STL Downloaded! Check your download folder", 5);
+		} else {
+			err("STL missing from response");
+		}
+	};
+
+	const err = function (err) {
+		console.error(err);
+		ide.showMessage("Something went wrong with the download. Try again later...", 5);
+	};
+
+	ide.showMessage("Creating STL, please wait...");
+	fetch("/api/stl/", {
+		method: "PUT",
+		body: file,
+	})
+		.then((response) => {
+			if (!response.ok) {
+				throw new Error("Network response was not ok");
+			}
+			return response.json();
+		})
+		.then(success)
+		.catch(err);
+}
+
+function downloadSTL(stl, name) {
+	let blob = new Blob([stl]);
+	let link = document.createElement("a");
+	link.href = window.URL.createObjectURL(blob);
+	link.download = `${name}.stl`;
+	link.click();
+}
+
+function imageToSTL(imageFile, options = {}) {
+	const {
+		maxHeight = 10, // Maximum extrusion height
+		width = 100, // Width of the generated mesh
+		height = 100, // Height of the generated mesh
+		filename = "image.stl", // Output filename
+	} = options;
+
+	return new Promise((resolve, reject) => {
+		const img = new Image();
+		img.onload = function () {
+			try {
+				// Create canvas to process image
+				const canvas = document.createElement("canvas");
+				const ctx = canvas.getContext("2d");
+				canvas.width = width;
+				canvas.height = height;
+
+				// Draw and scale image to desired size
+				ctx.drawImage(img, 0, 0, width, height);
+
+				// Get image data
+				const imageData = ctx.getImageData(0, 0, width, height);
+				const pixels = imageData.data;
+
+				// Create geometry with subdivisions
+				const geometry = new THREE.PlaneGeometry(width, height, width - 1, height - 1);
+
+				// Process each pixel to create height map
+				for (let i = 0, j = 0; i < pixels.length; i += 4, j++) {
+					// Convert to grayscale
+					const r = pixels[i];
+					const g = pixels[i + 1];
+					const b = pixels[i + 2];
+					const grayscale = (r + g + b) / 3;
+
+					// Map grayscale to height (0-255 -> 0-maxHeight)
+					const heightValue = (grayscale / 255) * maxHeight;
+
+					// Set Z coordinate (height)
+					geometry.vertices[j].z = heightValue;
+				}
+
+				// Update geometry
+				geometry.verticesNeedUpdate = true;
+				geometry.computeFaceNormals();
+
+				// Export to STL
+				const exporter = new THREE.STLExporter();
+				const stlString = exporter.parse(geometry);
+
+				// Create and download file
+				const blob = new Blob([stlString], { type: "text/plain" });
+				const url = URL.createObjectURL(blob);
+				const link = document.createElement("a");
+				link.href = url;
+				link.download = filename;
+				link.click();
+				URL.revokeObjectURL(url);
+
+				resolve(stlString);
+			} catch (error) {
+				reject(error);
+			}
+		};
+
+		img.onerror = () => reject(new Error("Failed to load image"));
+		img.src = URL.createObjectURL(imageFile);
+	});
+}
+
+IDE_Morph.prototype.launchSTLParamsPrompt = function () {
+	new DialogBoxMorph(null, (data) => {
+		this.exportAsSTL(data);
+	}).promptForSTLParameters("Advanced STL Download", world);
+};
+
+IDE_Morph.prototype.exportAsSTL = function (payload = {}) {
+	const myself = this;
+
+	//Creates file from current stage
+	let file = createFileFromStage(myself, payload);
+
+	//Sends file to django api (/api/stl), creates, and returns stl
+	requestSTLConversion(file, myself);
+};
+
+DialogBoxMorph.prototype.promptForSTLParameters = function (title, world) {
+	var inp = new AlignmentMorph("column", 2),
+		bdy = new AlignmentMorph("column", this.padding),
+		myself = this;
+
+	/**
+	 * InputFieldMorph: text, numeric, choices, isReadOnly
+	 *
+	 * Quick reference to values from python module for STL.
+	 * baseParam: (default is False) specifies that a base is added; False would indicate not adding a base (this is the default option).
+	 * smoothParam: {default is True} specifies that the image is smoothed before converting to STL; False would disable this feature (default option).
+	 * negativeParam (default is False) specifies that the image is used to generate a square with the image object as a (default option is False).
+	 * sizeParam: (default is [480, 360]) specifies that the image be resized to (256x256) (default option).
+	 * scaleParam: (default is 0.1) scales the resulting STL mesh height to 1/10 (default option).
+	 */
+
+	let baseParam = new InputFieldMorph("False", false, { True: ["True"], False: ["False"] }, true);
+
+	let smoothParam = new InputFieldMorph("True", false, { True: ["True"], False: ["False"] }, true);
+
+	let negativeParam = new InputFieldMorph("False", false, { True: ["True"], False: ["False"] }, true);
+
+	let xParam = new InputFieldMorph(`${world.children[0].stage.dimensions.x}`, true, null, false);
+	let yParam = new InputFieldMorph(`${world.children[0].stage.dimensions.y}`, true, null, false);
+
+	let scaleParam = new InputFieldMorph("0.1", true, null, false);
+
+	inp.alignment = "left";
+	inp.setColor(this.color);
+	bdy.setColor(this.color);
+
+	createLabelInput(inp, "Base: ", baseParam);
+	inp.add(createText("A platform behind your design", 9));
+	inp.add(createText(" ", 5));
+	createLabelInput(inp, "Smooth:", smoothParam);
+	inp.add(createText("Set False for more jagged edges", 9));
+	inp.add(createText(" ", 5));
+	createLabelInput(inp, "Negative: ", negativeParam);
+	inp.add(createText("Inverse your design", 9));
+	inp.add(createText(" ", 5));
+	createLabelInput(inp, "X: ", xParam);
+	inp.add(createText("Length of STL in pixels", 9));
+	inp.add(createText(" ", 5));
+	createLabelInput(inp, "Y: ", yParam);
+	inp.add(createText("Width of STL in pixels", 9));
+	inp.add(createText(" ", 5));
+	createLabelInput(inp, "Z: ", scaleParam);
+	inp.add(createText("STL mesh height", 9));
+	inp.add(createText(" ", 5));
+
+	baseParam.value = "False";
+
+	bdy.add(inp);
+	inp.fixLayout();
+	bdy.fixLayout();
+
+	this.labelString = title;
+	this.createLabel();
+
+	this.addBody(bdy);
+
+	this.addButton("ok", "Download");
+	this.addButton("cancel", "Cancel");
+	this.fixLayout();
+
+	this.accept = function () {
+		DialogBoxMorph.prototype.accept.call(myself);
+	};
+
+	this.getInput = function () {
+		let payload = {
+			base: baseParam.getValue(),
+			smooth: smoothParam.getValue(),
+			negative: negativeParam.getValue(),
+			size: [xParam.getValue() || 480, yParam.getValue() || 360],
+			scale: scaleParam.getValue() || 0.1,
+		};
+
+		return payload;
+	};
+	this.popUp(world);
+};
+
+// IDE_Morph.prototype.exportAsSTL = function (payload = {}) {
+// 	const myself = this;
+
+// 	// Check if we have Three.js available for client-side conversion
+// 	if (typeof THREE !== "undefined" && THREE.STLExporter) {
+// 		// Use client-side Three.js conversion
+// 		this.exportAsSTLClientSide(payload);
+// 	} else {
+// 		// Fall back to server-side conversion
+// 		this.exportAsSTLServerSide(payload);
+// 	}
+// };
+
+IDE_Morph.prototype.exportAsSTLClientSide = function (payload = {}) {
+	const myself = this;
+
+	// Get the stage canvas as an image
+	const canvas = this.stage.fullImage();
+	const imageData = canvas.toDataURL("image/png");
+
+	// Convert data URL to blob
+	const blob = dataURItoBlob(imageData);
+
+	// Default options
+	const defaultOptions = {
+		maxHeight: (payload.scale || 0.1) * 100, // Convert scale to height
+		width: payload.size ? payload.size[0] : 200,
+		height: payload.size ? payload.size[1] : 200,
+		filename: `${this.getProjectName() || "stage"}.stl`,
+	};
+
+	const finalOptions = Object.assign(defaultOptions, payload);
+
+	// Convert image to STL using Three.js
+	imageToSTLFromCanvas(canvas, finalOptions)
+		.then((stlString) => {
+			this.showMessage("STL Downloaded! Check your download folder", 5);
+		})
+		.catch((error) => {
+			console.error("STL conversion failed:", error);
+			this.showMessage("STL conversion failed. Please try again.", 5);
+		});
+};
+
+IDE_Morph.prototype.exportAsSTLServerSide = function (payload = {}) {
+	const myself = this;
+
+	//Creates file from current stage
+	let file = createFileFromStage(myself, payload);
+
+	//Sends file to django api (/api/stl), creates, and returns stl
+	requestSTLConversion(file, myself);
+};
+
+// Updated function to work with canvas instead of File object
+function imageToSTLFromCanvas(canvas, options = {}) {
+	const {
+		maxHeight = 10, // Maximum extrusion height
+		width = 100, // Width of the generated mesh
+		height = 100, // Height of the generated mesh
+		filename = "image.stl", // Output filename
+	} = options;
+
+	return new Promise((resolve, reject) => {
+		try {
+			// Create a new canvas to process the image
+			const processCanvas = document.createElement("canvas");
+			const ctx = processCanvas.getContext("2d");
+			processCanvas.width = width;
+			processCanvas.height = height;
+
+			// Draw and scale image to desired size
+			ctx.drawImage(canvas, 0, 0, width, height);
+
+			// Get image data
+			const imageData = ctx.getImageData(0, 0, width, height);
+			const pixels = imageData.data;
+
+			// Create geometry with subdivisions
+			const geometry = new THREE.PlaneGeometry(width, height, width - 1, height - 1);
+
+			// Get the position attribute (Three.js r128+)
+			const positionAttribute = geometry.attributes.position;
+			const positions = positionAttribute.array;
+
+			// Process each pixel to create height map
+			for (let i = 0, j = 0; i < pixels.length; i += 4, j++) {
+				// Convert to grayscale
+				const r = pixels[i];
+				const g = pixels[i + 1];
+				const b = pixels[i + 2];
+				const grayscale = (r + g + b) / 3;
+
+				// Map grayscale to height (0-255 -> 0-maxHeight)
+				const heightValue = (grayscale / 255) * maxHeight;
+
+				// Set Z coordinate (height) - positions array is [x, y, z, x, y, z, ...]
+				positions[j * 3 + 2] = heightValue;
+			}
+
+			// Mark the attribute as needing update
+			positionAttribute.needsUpdate = true;
+
+			// Compute face normals
+			geometry.computeVertexNormals();
+
+			// Create a mesh from the geometry
+			const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+			const mesh = new THREE.Mesh(geometry, material);
+
+			// Create a scene and add the mesh
+			const scene = new THREE.Scene();
+			scene.add(mesh);
+
+			// Export to STL
+			const exporter = new THREE.STLExporter();
+			const stlString = exporter.parse(scene);
+
+			// Create and download file
+			const blob = new Blob([stlString], { type: "text/plain" });
+			const url = URL.createObjectURL(blob);
+			const link = document.createElement("a");
+			link.href = url;
+			link.download = filename;
+			link.click();
+			URL.revokeObjectURL(url);
+
+			resolve(stlString);
+		} catch (error) {
+			reject(error);
+		}
+	});
+}
+
+// Also update the original imageToSTL function for consistency
+function imageToSTL(imageFile, options = {}) {
+	const {
+		maxHeight = 10, // Maximum extrusion height
+		width = 100, // Width of the generated mesh
+		height = 100, // Height of the generated mesh
+		filename = "image.stl", // Output filename
+	} = options;
+
+	return new Promise((resolve, reject) => {
+		const img = new Image();
+		img.onload = function () {
+			try {
+				// Create canvas to process image
+				const canvas = document.createElement("canvas");
+				const ctx = canvas.getContext("2d");
+				canvas.width = width;
+				canvas.height = height;
+
+				// Draw and scale image to desired size
+				ctx.drawImage(img, 0, 0, width, height);
+
+				// Get image data
+				const imageData = ctx.getImageData(0, 0, width, height);
+				const pixels = imageData.data;
+
+				// Create geometry with subdivisions
+				const geometry = new THREE.PlaneGeometry(width, height, width - 1, height - 1);
+
+				// Get the position attribute (Three.js r128+)
+				const positionAttribute = geometry.attributes.position;
+				const positions = positionAttribute.array;
+
+				// Process each pixel to create height map
+				for (let i = 0, j = 0; i < pixels.length; i += 4, j++) {
+					// Convert to grayscale
+					const r = pixels[i];
+					const g = pixels[i + 1];
+					const b = pixels[i + 2];
+					const grayscale = (r + g + b) / 3;
+
+					// Map grayscale to height (0-255 -> 0-maxHeight)
+					const heightValue = (grayscale / 255) * maxHeight;
+
+					// Set Z coordinate (height) - positions array is [x, y, y, z, x, y, z, ...]
+					positions[j * 3 + 2] = heightValue;
+				}
+
+				// Mark the attribute as needing update
+				positionAttribute.needsUpdate = true;
+
+				// Compute face normals
+				geometry.computeVertexNormals();
+
+				// Create a mesh from the geometry
+				const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
+				const mesh = new THREE.Mesh(geometry, material);
+
+				// Create a scene and add the mesh
+				const scene = new THREE.Scene();
+				scene.add(mesh);
+
+				// Export to STL
+				const exporter = new THREE.STLExporter();
+				const stlString = exporter.parse(scene);
+
+				// Create and download file
+				const blob = new Blob([stlString], { type: "text/plain" });
+				const url = URL.createObjectURL(blob);
+				const link = document.createElement("a");
+				link.href = url;
+				link.download = filename;
+				link.click();
+				URL.revokeObjectURL(url);
+
+				resolve(stlString);
+			} catch (error) {
+				reject(error);
+			}
+		};
+
+		img.onerror = () => reject(new Error("Failed to load image"));
+		img.src = URL.createObjectURL(imageFile);
+	});
+}
