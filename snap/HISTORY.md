@@ -2,6 +2,58 @@
 
 ## in development:
 
+### 2025-09-16
+* added experimental editor configuration for German middle schools (imbw)
+* gui: fixed an IDE refreshing glitch when using a configuration dictionary that loads a default project
+
+### 2025-09-15
+* German and Catalan translation update
+* neural networks library: changed "classify" reporter to feature a dropdown menu for "classify" and "predict" selectors, allowing to determine the neural network's confidence
+* morphic: fixed horizontal scrolling for trackpads, thanks, @ego-lay-atman-bay !
+* extensions: new "tts_activate(msg)" extension for activating speech synthesis on mobile iOS / iPadOS devices, sigh
+* speech library: added new "activate speech synthesis" command to the speech library for iOS devices 
+
+### 2025-09-14
+* new dev version
+* morphic: Try to activate speech synthesis on mobile Safari (this totally used to work, I hate Apple)
+
+## 11.0.2:
+* **Notable Changes:**
+    * MQTT library update, thanks, Simon!
+* **Notable Fixes:**
+    * fixed a missing edge case when specifying default values for numerical input slots
+    * show cloud message when saving a project, thanks, Bernat!
+
+### 2025-09-10
+* widgets: fixed a missing edge case when specifying default values for numerical input slots
+* gui: show cloud message when saving a project, thanks, Bernat!
+* MQTT library update, thanks, Simon!
+* prepared v11.0.2 patch
+
+## 11.0.1:
+* **Notable Changes:**
+    * added a dynamic dropdown menu to the "tag" input of the "generate predicate" block in the neural networks library
+    * added localizable "auto" default values for epochs and topology inputs of the "generate predicate" block in the neural networks library
+* **Notable Fixes:**
+    * fixed a doubling "corpse" bug when deleting a cloned permanent "Turtle sprite"
+    * fixed & added "senders / receivers" scanning support for "request" reporters
+    * fixed stopping active text-to-speech sounds when pressing the stop button or executing the stop command
+    * fixed noExitWarning configuration/flag feature, thanks Joan!
+
+### 2025-09-09
+* prepared v11.0.1 patch
+
+### 2025-09-08
+* morphic, blocks, widgets: fixed selector-type default inputs in custom polyadic slots
+* neural networks library: added localizable "auto" default values for epochs and topology inputs ofthe "generate predicate" block
+* objects: stop active text-to-speech sounds when pressing the stop button or executing the stop command
+
+### 2025-09-06
+* blocks: fixed & added "senders / receivers" scanning support for "request" reporters
+* neural networks library: Added dynamic dropdown menu to the "tag" input of the "generate predicate" block
+* objects: fixed a doubling "corpse" bug when deleting a cloned permanent "Turtle sprite"
+* morphic, gui: fixed noExitWarning configuration/flag feature, thanks Joan!
+
 ## 11.0.0:
 * **New Features:**
     * Neural Networks
