@@ -96,7 +96,7 @@ CustomBlockDefinition, exportEmbroidery, CustomHatBlockMorph*/
 
 /*jshint esversion: 11*/
 
-modules.objects = '2025-August-29';
+modules.objects = '2025-September-08';
 
 var SpriteMorph;
 var StageMorph;
@@ -5978,7 +5978,6 @@ SpriteMorph.prototype.newTurtleSprite = function () {
         ide.stage.cloneCount += 1;
         sprite.fixLayout();
         sprite.rerender();
-        ide.sprites.add(sprite);
     } else {
         throw new Error('exceeding maximum number of clones');
     }
@@ -12091,6 +12090,9 @@ StageMorph.prototype.stopAllActiveSounds = function () {
     this.activeSounds = [];
     if (this.microphone.modifier && this.microphone.isReady) {
         this.microphone.stop();
+    }
+    if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
     }
 };
 
