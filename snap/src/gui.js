@@ -87,11 +87,11 @@ HatBlockMorph*/
 
 // Global stuff ////////////////////////////////////////////////////////
 
-modules.gui = '2025-September-16';
+modules.gui = '2025-August-29';
 
 // Declarations
 
-var SnapVersion = '11.0.3-dev';
+var SnapVersion = '11.0.0';
 
 var IDE_Morph;
 var ProjectDialogMorph;
@@ -469,10 +469,10 @@ IDE_Morph.prototype.openIn = function (world) {
         }
         if (dict.hideControls) {
             myself.controlBar.hide();
-            window.noExitWarning = true;
+            window.onbeforeunload = nop;
         }
         if (dict.noExitWarning) {
-            window.noExitWarning = true;
+            window.onbeforeunload = window.cachedOnbeforeunload;
         }
         if (dict.blocksZoom) {
             myself.savingPreferences = false;
@@ -855,8 +855,6 @@ IDE_Morph.prototype.applyConfigurations = function () {
                 this.getURL(
                     cnf.load,
                     projectData => {
-                        this.buildPanes();
-                        this.fixLayout();
                         if (projectData.indexOf('<snapdata') === 0) {
                             this.rawOpenCloudDataString(projectData);
                         } else if (
@@ -968,7 +966,7 @@ IDE_Morph.prototype.applyConfigurations = function () {
 
     // disable onbeforeunload close warning
     if (cnf.noExitWarning) {
-        window.noExitWarning = true;
+        window.onbeforeunload = window.cachedOnbeforeunload;
     }
 };
 
@@ -979,7 +977,7 @@ IDE_Morph.prototype.applyPaneHidingConfigurations = function () {
     if (cnf.hideControls) {
         this.logo.hide();
         this.controlBar.hide();
-        window.noExitWarning = true;
+        window.onbeforeunload = nop;
     }
 
     // hide categories
@@ -8633,9 +8631,9 @@ IDE_Morph.prototype.saveProjectToCloud = function (name) {
     this.cloud.saveProject(
         this.getProjectName(),
         projectBody,
-        (message) => {
+        () => {
             this.recordSavedChanges();
-            this.showMessage(message, 2);
+            this.showMessage('saved.', 2);
         },
         this.cloudError()
     );

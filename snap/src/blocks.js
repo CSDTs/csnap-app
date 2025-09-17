@@ -162,7 +162,7 @@ CustomHatBlockMorph*/
 
 // Global stuff ////////////////////////////////////////////////////////
 
-modules.blocks = '2025-September-08';
+modules.blocks = '2025-August-29';
 
 var SyntaxElementMorph;
 var BlockMorph;
@@ -3815,8 +3815,14 @@ BlockMorph.prototype.userMenu = function () {
         });
         return menu;
     }
+    if (this.parent.parentThatIsA(RingMorph)) {
+        menu.addLine();
+        menu.addItem("unringify", 'unringify');
+        menu.addItem("ringify", 'ringify');
+        return menu;
+    }
     if (contains(
-        ['doBroadcast', 'doBroadcastAndWait', 'reportPoll', 'receiveMessage',
+        ['doBroadcast', 'doBroadcastAndWait', 'receiveMessage',
             'receiveOnClone', 'receiveGo'],
         this.selector
     )) {
@@ -3827,12 +3833,6 @@ BlockMorph.prototype.userMenu = function () {
                 "senders..." : "receivers..."),
             'showMessageUsers'
         );
-    }
-    if (this.parent.parentThatIsA(RingMorph)) {
-        if (!hasLine) {menu.addLine(); }
-        menu.addItem("unringify", 'unringify');
-        menu.addItem("ringify", 'ringify');
-        return menu;
     }
     if (this.parent instanceof ReporterSlotMorph
             || (this.parent instanceof CommandSlotMorph)
@@ -3885,8 +3885,7 @@ BlockMorph.prototype.messageUsers = function () {
     var ide = this.parentThatIsA(IDE_Morph) ||
             this.parentThatIsA(BlockEditorMorph)
                 .target.parentThatIsA(IDE_Morph),
-        isSender = this.selector === 'reportPoll' ||
-            this.selector.indexOf('doBroadcast') === 0,
+        isSender = this.selector.indexOf('doBroadcast') === 0,
         isReceiver = this.selector.indexOf('receive') === 0,
         getter = isReceiver ? 'allSendersOf' : 'allHatBlocksFor',
         inputs = this.inputs(),
@@ -3940,9 +3939,7 @@ BlockMorph.prototype.isSending = function (message, receiverName, known = []) {
         ) {
             return true;
         }
-        if (morph.selector && (morph.selector === 'reportPoll' ||
-            morph.selector.indexOf('doBroadcast') === 0)
-        ) {
+        if (morph.selector && morph.selector.indexOf('doBroadcast') === 0) {
             inputs = morph.inputs();
             event = inputs[0].evaluate();
             if (event instanceof Array) {
@@ -14318,7 +14315,7 @@ MultiArgMorph.prototype.setDefaultValue = function (defaultValue) {
         var items = (str || '').toString().split('\n')
             .filter(each => each.length).map(each =>
                 isString(each) && each.length > 2 && each.startsWith('$_') ?
-                    [each.slice(2)]
+                    localize(each.slice(2))
                     : each);
         return items.length > 1 ? items : items[0] || null;
     }
