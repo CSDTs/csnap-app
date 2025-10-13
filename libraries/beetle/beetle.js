@@ -935,13 +935,16 @@ Beetle.prototype.init = function (controller) {
 	this.controller = controller;
 
 	this.name = "beetle";
+	this.currentModel = "beetle"; // Track current model
+	this.pendingColor = null; // Store color if set before model loads
 
 	this.shapeScale = new BABYLON.Vector2(1, 1);
 	this.shapeOffset = new BABYLON.Vector2.Zero();
 	this.movementScale = 1;
 
-	this.loadMeshes();
+	this.loadMeshes("beetle");
 	this.wings = null;
+	this.loadedMeshes = []; // Track loaded meshes for cleanup
 	this.body = new BABYLON.TransformNode("body", this.controller.scene);
 	this.axisLines = {};
 
@@ -979,29 +982,42 @@ Beetle.prototype.initColor = function () {
 };
 
 Beetle.prototype.setColor = function (color) {
-	this.wings.material.diffuseColor = new BABYLON.Color3(color.r / 255, color.g / 255, color.b / 255);
+	// Store the color in case wings isn't loaded yet
+	this.pendingColor = color;
 
-	// any further extrusion will have to be a new mesh because of the new color
-	if (this.extruding) {
-		this.stopExtruding();
-		this.extrudeToCurrentPoint();
+	// Only apply if wings is loaded
+	if (this.wings && this.wings.material) {
+		this.wings.material.diffuseColor = new BABYLON.Color3(color.r / 255, color.g / 255, color.b / 255);
+
+		// any further extrusion will have to be a new mesh because of the new color
+		if (this.extruding) {
+			this.stopExtruding();
+			this.extrudeToCurrentPoint();
+		}
+
+		this.controller.changed();
 	}
-
-	this.controller.changed();
+	// If wings isn't loaded yet, the color will be applied when it loads
 };
 
-Beetle.prototype.loadMeshes = function () {
+Beetle.prototype.loadMeshes = function (modelName) {
+	modelName = modelName || "beetle";
+	this.currentModel = modelName;
+
 	["gray", "color", "black"].forEach((each) =>
 		BABYLON.SceneLoader.ImportMesh(
 			"",
 			baseUrl + "meshes/",
-			"beetle-" + each + ".obj",
+			modelName + "-" + each + ".obj",
 			this.controller.scene,
 			(meshes) => {
-				meshes.forEach((mesh) => (mesh.parent = this.body));
+				meshes.forEach((mesh) => {
+					mesh.parent = this.body;
+					this.loadedMeshes.push(mesh); // Track for cleanup
+				});
 				if (each !== "black") {
 					meshes.forEach((mesh) => {
-						var material = new BABYLON.StandardMaterial(each, this.controller.scene);
+						var material = new BABYLON.StandardMaterial(each + "_" + modelName, this.controller.scene);
 						mesh.material = material;
 						material.diffuseColor.set(0.5, 0.5, 0.5);
 						material.emissiveColor = material.diffuseColor;
@@ -1012,11 +1028,60 @@ Beetle.prototype.loadMeshes = function () {
 				}
 				if (each === "color") {
 					this.wings = meshes[0];
-					this.initColor();
+
+					// Apply pending color if one was set before wings loaded
+					if (this.pendingColor) {
+						this.wings.material.diffuseColor = new BABYLON.Color3(
+							this.pendingColor.r / 255,
+							this.pendingColor.g / 255,
+							this.pendingColor.b / 255
+						);
+					} else {
+						// Otherwise initialize from current sprite color
+						this.initColor();
+					}
+
+					this.controller.changed();
 				}
 			}
 		)
 	);
+};
+
+// Dispose of all loaded meshes
+Beetle.prototype.clearMeshes = function () {
+	// Remove meshes from body before disposing
+	this.loadedMeshes.forEach((mesh) => {
+		if (mesh.parent) {
+			mesh.parent = null;
+		}
+		if (mesh.material) {
+			mesh.material.dispose();
+		}
+		mesh.dispose();
+	});
+	this.loadedMeshes = [];
+	this.wings = null;
+};
+
+// Helper method to check if beetle is ready for operations
+Beetle.prototype.isReady = function () {
+	return this.body && this.loadedMeshes.length > 0;
+};
+
+// Switch to a different model
+Beetle.prototype.switchModel = function (modelName) {
+	if (this.currentModel === modelName) {
+		return; // Already using this model
+	}
+
+	// Clear existing meshes
+	this.clearMeshes();
+
+	// Load new model
+	this.loadMeshes(modelName);
+
+	this.controller.changed();
 };
 
 // Extrusion support
@@ -1259,12 +1324,20 @@ Beetle.prototype.stopExtruding = function () {
 };
 
 Beetle.prototype.show = function () {
+	if (!this.isReady()) {
+		return;
+	}
+
 	var extrusionShapeOutlineVisibility = this.extrusionShapeOutline.visibility;
 	this.body.getChildren().forEach((mesh) => (mesh.visibility = 1));
 	this.extrusionShapeOutline.visibility = extrusionShapeOutlineVisibility;
 };
 
 Beetle.prototype.hide = function () {
+	if (!this.isReady()) {
+		return;
+	}
+
 	var extrusionShapeOutlineVisibility = this.extrusionShapeOutline.visibility;
 	this.body.getChildren().forEach((mesh) => (mesh.visibility = 0));
 	this.extrusionShapeOutline.visibility = extrusionShapeOutlineVisibility;
@@ -1277,6 +1350,11 @@ Beetle.prototype.isVisible = function () {
 // User facing methods, called from blocks
 
 Beetle.prototype.move = function (axis, steps) {
+	// Don't move if no meshes are loaded (during model switching)
+	if (!this.isReady()) {
+		return;
+	}
+
 	var scaledSteps = Number(steps) * this.movementScale,
 		vector = new BABYLON.Vector3(
 			axis === "x" ? scaledSteps * -1 : 0,
@@ -1291,6 +1369,10 @@ Beetle.prototype.move = function (axis, steps) {
 };
 
 Beetle.prototype.goto = function (x, y, z) {
+	if (!this.isReady()) {
+		return;
+	}
+
 	if (x !== "") {
 		this.body.position.x = Number(x) * -1;
 	}
@@ -1307,10 +1389,17 @@ Beetle.prototype.goto = function (x, y, z) {
 };
 
 Beetle.prototype.getPosition = function () {
+	if (!this.isReady()) {
+		return new List([0, 0, 0]);
+	}
 	return new List([this.body.position.x * -1, this.body.position.y, this.body.position.z]);
 };
 
 Beetle.prototype.setRotations = function (x, y, z) {
+	if (!this.isReady()) {
+		return;
+	}
+
 	var oldRotation;
 	if (this.body.rotationQuaternion) {
 		oldRotation = this.body.rotationQuaternion.toEulerAngles();
@@ -1336,6 +1425,10 @@ Beetle.prototype.setRotations = function (x, y, z) {
 };
 
 Beetle.prototype.getRotation = function () {
+	if (!this.isReady()) {
+		return new List([0, 0, 0]);
+	}
+
 	if (this.body.rotationQuaternion) {
 		var rotation = this.body.rotationQuaternion.toEulerAngles();
 		return new List([degrees(rotation.x * -1), degrees(rotation.y * -1), degrees(rotation.z * -1)]);
@@ -1345,6 +1438,10 @@ Beetle.prototype.getRotation = function () {
 };
 
 Beetle.prototype.rotate = function (x, y, z) {
+	if (!this.isReady()) {
+		return;
+	}
+
 	if (x !== "") {
 		this.body.rotate(BABYLON.Axis.X, radians(Number(x)) * -1);
 	}
@@ -1358,6 +1455,10 @@ Beetle.prototype.rotate = function (x, y, z) {
 };
 
 Beetle.prototype.pointTo = function (x, y, z) {
+	if (!this.isReady()) {
+		return;
+	}
+
 	this.body.lookAt(new BABYLON.Vector3(Number(x) * -1, Number(y), Number(z)));
 	this.controller.changed();
 };
@@ -1492,6 +1593,10 @@ Beetle.prototype.renderTorus = function (width, length) {
 };
 
 Beetle.prototype.renderSphere = function (radius) {
+	if (!this.isReady()) {
+		return;
+	}
+
 	// Get beetle's current position and rotation
 	var beetlePos = this.body.position;
 	var beetleRotationMatrix = this.body.computeWorldMatrix(true);
@@ -1523,6 +1628,10 @@ Beetle.prototype.renderSphere = function (radius) {
 };
 
 Beetle.prototype.renderBox = function (width, height, depth) {
+	if (!this.isReady()) {
+		return;
+	}
+
 	// Get beetle's current position and rotation
 	var beetlePos = this.body.position;
 	var beetleRotationMatrix = this.body.computeWorldMatrix(true);
@@ -1555,6 +1664,10 @@ Beetle.prototype.renderBox = function (width, height, depth) {
 };
 
 Beetle.prototype.renderCylinder = function (top, bottom, height) {
+	if (!this.isReady()) {
+		return;
+	}
+
 	// Get beetle's current position and rotation
 	var beetlePos = this.body.position;
 	var beetleRotationMatrix = this.body.computeWorldMatrix(true);
@@ -1588,6 +1701,10 @@ Beetle.prototype.renderCylinder = function (top, bottom, height) {
 };
 
 Beetle.prototype.renderTorusKnot = function (radius, tube, p, q, heightScale) {
+	if (!this.isReady()) {
+		return;
+	}
+
 	// Get beetle's current position and rotation
 	var beetlePos = this.body.position;
 	var beetleRotationMatrix = this.body.computeWorldMatrix(true);
@@ -1688,6 +1805,22 @@ SnapExtensions.buttons.palette.push({
 })();
 
 // Primitives
+
+SnapExtensions.primitives.set("bb_switchmodel(modelName)", function (modelName) {
+	var stage = this.parentThatIsA(StageMorph);
+	if (!stage.beetleController) {
+		return;
+	}
+	stage.beetleController.beetle.switchModel(modelName);
+});
+
+SnapExtensions.primitives.set("bb_getmodel()", function () {
+	var stage = this.parentThatIsA(StageMorph);
+	if (!stage.beetleController) {
+		return "beetle";
+	}
+	return stage.beetleController.beetle.currentModel;
+});
 
 SnapExtensions.primitives.set("bb_clear()", function (steps) {
 	var stage = this.parentThatIsA(StageMorph);
