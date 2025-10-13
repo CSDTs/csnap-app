@@ -147,6 +147,11 @@ SpriteMorph.prototype.primitiveArduinoBlocks = function () {
 			category: "variables",
 			spec: "display %l and %l as a CSV",
 		},
+		printList: {
+			type: "command",
+			category: "variables",
+			spec: "print list %l",
+		},
 		changeEffect: {
 			type: "command",
 			category: "looks",
@@ -165,12 +170,31 @@ SpriteMorph.prototype.primitiveArduinoBlocks = function () {
 			category: "looks",
 			spec: "(legacy) set costume color to %n ",
 		},
+
+		changeCostumeShade: {
+			type: "command",
+			category: "looks",
+			spec: "(legacy) change costume shade by %n ",
+		},
+
 		setScaleGlide: {
 			only: SpriteMorph,
 			type: "command",
 			category: "looks",
 			spec: "glide set scale to %n %",
 			defaults: [50],
+		},
+		changeCostumeShade: {
+			type: "command",
+			category: "looks",
+			spec: "(legacy) change costume shade by %n",
+			defaults: [100],
+		},
+		setCostumeShade: {
+			type: "command",
+			category: "looks",
+			spec: "(legacy) set costume shade to %n",
+			defaults: [100],
 		},
 	};
 };
@@ -261,7 +285,10 @@ SpriteMorph.prototype.blockTemplates = function (category, all = false) {
 
 	//TODO: Re-add the decatorize blocks for tutorials
 
-	if (category === "motion") {
+	if (category === "unified") {
+		blocks.push(block("receiveGo"));
+		return blocks;
+	} else if (category === "motion") {
 		blocks.push("=");
 		addCSDTMotionBlocks(blocks);
 	} else if (category === "looks") {
@@ -275,166 +302,413 @@ SpriteMorph.prototype.blockTemplates = function (category, all = false) {
 	return blocks;
 };
 
-SpriteMorph.prototype.freshPalette = function (category) {
-	var myself = this,
-		palette = new ScrollFrameMorph(null, null, this.sliderColor),
-		unit = SyntaxElementMorph.prototype.fontSize,
-		ide,
-		showCategories,
-		showButtons,
-		x = 0,
-		y = 5,
-		ry = 0,
-		blocks,
-		hideNextSpace = false,
-		shade = new Color(140, 140, 140),
-		searchButton,
-		makeButton;
-
-	palette.owner = this;
-	palette.padding = unit / 2;
-	palette.color = this.paletteColor;
-	palette.growth = new Point(0, MorphicPreferences.scrollBarSize);
-
-	// toolbar:
-
-	palette.toolBar = new AlignmentMorph("column");
-
-	searchButton = new PushButtonMorph(this, "searchBlocks", new SymbolMorph("magnifierOutline", 16));
-	searchButton.alpha = 0.2;
-	searchButton.padding = 1;
-	searchButton.hint = localize("find blocks") + "...";
-	searchButton.labelShadowColor = shade;
-	searchButton.edge = 0;
-	searchButton.padding = 3;
-	searchButton.fixLayout();
-	palette.toolBar.add(searchButton);
-
-	makeButton = new PushButtonMorph(this, "makeBlock", new SymbolMorph("cross", 16));
-	makeButton.alpha = 0.2;
-	makeButton.padding = 1;
-	makeButton.hint = localize("Make a block") + "...";
-	makeButton.labelShadowColor = shade;
-	makeButton.edge = 0;
-	makeButton.padding = 3;
-	makeButton.fixLayout();
-	palette.toolBar.add(makeButton);
-
-	palette.toolBar.fixLayout();
-	palette.add(palette.toolBar);
-
-	// menu:
-	palette.userMenu = function () {
-		var menu = new MenuMorph();
-
-		menu.addPair(
-			[new SymbolMorph("magnifyingGlass", MorphicPreferences.menuFontSize), localize("find blocks") + "..."],
-			() => myself.searchBlocks(),
-			"^F"
-		);
-		menu.addItem("hide blocks...", () => new BlockVisibilityDialogMorph(myself).popUp(myself.world()));
-		menu.addLine();
-		menu.addItem("make a category...", () => this.parentThatIsA(IDE_Morph).createNewCategory());
-		if (SpriteMorph.prototype.customCategories.size) {
-			menu.addItem("delete a category...", () => this.parentThatIsA(IDE_Morph).deleteUserCategory());
-		}
-		return menu;
-	};
-
-	if (category === "unified") {
-		// In a Unified Palette custom blocks appear following each category,
-		// but there is only 1 make a block button (at the end).
-		ide = this.parentThatIsA(IDE_Morph);
-		showCategories = ide.scene.showCategories;
-		showButtons = ide.scene.showPaletteButtons;
-		blocks = SpriteMorph.prototype.allCategories().reduce((blocks, category) => {
-			let header = [this.categoryText(category), "-"],
-				primitives = this.getPrimitiveTemplates(category),
-				customs = this.customBlockTemplatesForCategory(category),
-				showHeader =
-					showCategories &&
-					!["lists"].includes(category) && // removing "other" exclusion
-					(primitives.some((item) => item instanceof BlockMorph) || customs.length);
-
-			// hide category names
-			if (!showCategories && category !== "variables") {
-				primitives = primitives.filter((each) => each !== "-" && each !== "=");
-			}
-
-			// hide "make / delete a variable" buttons
-			if (!showButtons && category === "variables") {
-				primitives = primitives.filter((each) => !(each instanceof PushButtonMorph && !(each instanceof ToggleMorph)));
-			}
-
-			return blocks.concat(
-				showHeader ? header : [],
-				primitives,
-				showHeader ? "=" : null,
-				customs,
-				showHeader ? "=" : "-"
-			);
-		}, []);
-	} else {
-		// ensure we do not modify the cached array
-		blocks = this.getPrimitiveTemplates(category).slice();
-	}
-
-	if (category !== "unified" || showButtons) {
-		blocks.push("=");
-		blocks.push(this.makeBlockButton(category));
-	}
-
-	if (category !== "unified") {
-		blocks.push("=");
-		blocks.push(...this.customBlockTemplatesForCategory(category));
-	}
-	if (category === "variables") {
-		blocks.push(...this.customBlockTemplatesForCategory("lists"));
-		// blocks.push(...this.customBlockTemplatesForCategory('other'));
-	}
-
-	blocks.forEach((block) => {
-		if (block === null) {
-			return;
-		}
-		if (block === "-") {
-			if (hideNextSpace) {
-				return;
-			}
-			y += unit * 0.8;
-			hideNextSpace = true;
-		} else if (block === "=") {
-			if (hideNextSpace) {
-				return;
-			}
-			y += unit * 1.6;
-			hideNextSpace = true;
-		} else if (block === "#") {
-			x = 0;
-			y = ry === 0 ? y : ry;
-		} else {
-			hideNextSpace = false;
-			if (x === 0) {
-				y += unit * 0.3;
-			}
-			block.setPosition(new Point(x, y));
-			palette.addContents(block);
-			if (block instanceof ToggleMorph) {
-				x = block.right() + unit / 2;
-			} else if (block instanceof RingMorph) {
-				x = block.right() + unit / 2;
-				ry = block.bottom();
-			} else {
-				x = 0;
-				y += block.height();
-			}
-		}
-	});
-
-	palette.scrollX(palette.padding);
-	palette.scrollY(palette.padding);
-	return palette;
+SpriteMorph.prototype.categoryText = function (category) {
+	var txt = new StringMorph(localize(category[0].toUpperCase().concat(category.slice(1))), 11, null, true);
+	txt.setColor(this.paletteTextColor);
+	txt.category = category;
+	return txt;
 };
+
+SpriteMorph.prototype.originalFreshPalette = SpriteMorph.prototype.freshPalette;
+SpriteMorph.prototype.freshPalette = function (category) {
+	// If we're in tutorial mode and using unified palette, show only specific blocks
+	if (StageMorph.prototype.tutorial && category === "unified") {
+		var myself = this,
+			palette = new ScrollFrameMorph(null, null, this.sliderColor),
+			unit = SyntaxElementMorph.prototype.fontSize,
+			ide = this.parentThatIsA(IDE_Morph),
+			x = 0,
+			y = 5,
+			blocks = [],
+			hideNextSpace = false,
+			shade = new Color(140, 140, 140),
+			searchButton,
+			makeButton,
+			all = false,
+			inheritedVars = this.inheritedVariableNames();
+
+		palette.owner = this;
+		palette.padding = unit / 2;
+		palette.color = this.paletteColor;
+		palette.growth = new Point(0, MorphicPreferences.scrollBarSize);
+
+		// toolbar:
+		palette.toolBar = new AlignmentMorph("column");
+
+		searchButton = new PushButtonMorph(this, "searchBlocks", new SymbolMorph("magnifierOutline", 16));
+		searchButton.alpha = 0.2;
+		searchButton.padding = 1;
+		searchButton.hint = localize("find blocks") + "...";
+		searchButton.labelShadowColor = shade;
+		searchButton.edge = 0;
+		searchButton.padding = 3;
+		searchButton.fixLayout();
+		palette.toolBar.add(searchButton);
+
+		if (!ide || !ide.config.noOwnBlocks) {
+			makeButton = new PushButtonMorph(this, "makeBlock", new SymbolMorph("cross", 16));
+			makeButton.alpha = 0.2;
+			makeButton.padding = 1;
+			makeButton.hint = localize("Make a block") + "...";
+			makeButton.labelShadowColor = shade;
+			makeButton.edge = 0;
+			makeButton.padding = 3;
+			makeButton.fixLayout();
+			palette.toolBar.add(makeButton);
+		}
+
+		palette.toolBar.fixLayout();
+		palette.add(palette.toolBar);
+
+		// Define exactly which blocks to show in unified tutorial mode
+		function block(selector, isGhosted) {
+			if (StageMorph.prototype.hiddenPrimitives[selector] && !isGhosted) {
+				return null;
+			}
+			var newBlock = SpriteMorph.prototype.blockForSelector(selector, true);
+			newBlock.isDraggable = false;
+			newBlock.isTemplate = true;
+			if (isGhosted) {
+				newBlock.ghost();
+			}
+			return newBlock;
+		}
+
+		function variableWatcherToggle(varName, isGlobal) {
+			return new ToggleMorph(
+				"checkbox",
+				this,
+				function () {
+					myself.toggleVariableWatcher(varName, isGlobal);
+				},
+				null,
+				function () {
+					return myself.showingVariableWatcher(varName, isGlobal);
+				},
+				null
+			);
+		}
+
+		function variableBlock(varName, isLocal) {
+			var newBlock = SpriteMorph.prototype.variableBlock(varName, isLocal);
+			newBlock.isDraggable = false;
+			newBlock.isTemplate = true;
+			if (contains(inheritedVars, varName)) {
+				newBlock.ghost();
+			}
+			return newBlock;
+		}
+
+		// Add only the specific blocks you want
+
+		blocks.push(block("receiveGo"));
+		blocks.push(block("doRepeat"));
+		blocks.push(block("receiveMessage"));
+		blocks.push(block("doBroadcast"));
+		blocks.push("-");
+		blocks.push(block("gotoXY"));
+		blocks.push(block("pointAtAngle"));
+		blocks.push(block("rotateByDegrees"));
+		blocks.push(block("translatePercent"));
+		blocks.push(block("changeXPosition"));
+		blocks.push(block("turnLeft"));
+		blocks.push(block("forward"));
+
+		blocks.push(block("doSwitchToCostume"));
+		blocks.push(block("setEffect"));
+		blocks.push(block("reflectYAxis"));
+		blocks.push(block("setScale"));
+		blocks.push(block("newSizeOfCurrent"));
+
+		blocks.push(block("clear"));
+		blocks.push(block("doStamp"));
+		blocks.push(block("setSize"));
+
+		blocks.push("-");
+
+		// blocks.push(this.makeVariableButton());
+		if (this.variables.allNames().length > 0) {
+			blocks.push(this.deleteVariableButton());
+		}
+		blocks.push("-");
+
+		varNames = this.allGlobalVariableNames(true, all);
+		if (varNames.length > 0) {
+			varNames.forEach((name) => {
+				blocks.push(variableWatcherToggle(name, true));
+				blocks.push(variableBlock(name));
+			});
+			blocks.push("-");
+		}
+
+		varNames = this.allLocalVariableNames(true, all);
+		if (varNames.length > 0) {
+			varNames.forEach((name) => {
+				blocks.push(variableWatcherToggle(name));
+				blocks.push(variableBlock(name, true));
+			});
+			blocks.push("-");
+		}
+
+		blocks.push(block("doSetVar"));
+		blocks.push(block("doChangeVar"));
+
+		blocks.push(block("reportQuotient"));
+		blocks.push(block("reportProduct"));
+		blocks.push(block("reportBoolean"));
+		blocks.push(block("reportRandom"));
+
+		var allCustomBlocks = [];
+
+		// Add local custom blocks
+		if (this.customBlocks) {
+			this.customBlocks.forEach(function (definition) {
+				if (!definition.isHelper) {
+					// Don't show helper blocks
+					allCustomBlocks.push(definition.templateInstance());
+				}
+			});
+		}
+
+		// Add global custom blocks
+		var stage = this.parentThatIsA(StageMorph);
+		if (stage && stage.globalBlocks) {
+			stage.globalBlocks.forEach(function (definition) {
+				if (!definition.isHelper) {
+					// Don't show helper blocks
+					allCustomBlocks.push(definition.templateInstance());
+				}
+			});
+		}
+
+		// Add custom blocks to the blocks array
+		blocks = blocks.concat(allCustomBlocks);
+
+		// Add more blocks here as needed:
+		// blocks.push(block("move"));
+		// blocks.push(block("turnLeft"));
+		// etc.
+
+		// Add the blocks to the palette
+		blocks.forEach((block) => {
+			if (block === null) {
+				return;
+			}
+			if (block === "-") {
+				if (hideNextSpace) {
+					return;
+				}
+				y += unit * 0.8;
+				hideNextSpace = true;
+			} else if (block === "=") {
+				if (hideNextSpace) {
+					return;
+				}
+				y += unit * 1.6;
+				hideNextSpace = true;
+			} else if (block === "#") {
+				x = 0;
+				y = ry === 0 ? y : ry;
+			} else {
+				hideNextSpace = false;
+				if (x === 0) {
+					y += unit * 0.3;
+				}
+				block.setPosition(new Point(x, y));
+				palette.addContents(block);
+				if (block instanceof ToggleMorph) {
+					x = block.right() + unit / 2;
+				} else if (block instanceof RingMorph) {
+					x = block.right() + unit / 2;
+					ry = block.bottom();
+				} else {
+					x = 0;
+					y += block.height();
+				}
+			}
+		});
+
+		palette.scrollX(palette.padding);
+		palette.scrollY(palette.padding);
+		return palette;
+	}
+
+	// For non-tutorial or non-unified, use the original method
+	return this.originalFreshPalette(category);
+};
+
+// SpriteMorph.prototype.freshPalette = function (category) {
+// 	var myself = this,
+// 		palette = new ScrollFrameMorph(null, null, this.sliderColor),
+// 		unit = SyntaxElementMorph.prototype.fontSize,
+// 		ide = this.parentThatIsA(IDE_Morph),
+// 		showCategories,
+// 		showButtons,
+// 		x = 0,
+// 		y = 5,
+// 		ry = 0,
+// 		blocks,
+// 		hideNextSpace = false,
+// 		shade = new Color(140, 140, 140),
+// 		searchButton,
+// 		makeButton;
+
+// 	palette.owner = this;
+// 	palette.padding = unit / 2;
+// 	palette.color = this.paletteColor;
+// 	palette.growth = new Point(0, MorphicPreferences.scrollBarSize);
+
+// 	// toolbar:
+
+// 	palette.toolBar = new AlignmentMorph("column");
+
+// 	searchButton = new PushButtonMorph(this, "searchBlocks", new SymbolMorph("magnifierOutline", 16));
+// 	searchButton.alpha = 0.2;
+// 	searchButton.padding = 1;
+// 	searchButton.hint = localize("find blocks") + "...";
+// 	searchButton.labelShadowColor = shade;
+// 	searchButton.edge = 0;
+// 	searchButton.padding = 3;
+// 	searchButton.fixLayout();
+// 	palette.toolBar.add(searchButton);
+
+// 	if (!ide || !ide.config.noOwnBlocks) {
+// 		makeButton = new PushButtonMorph(this, "makeBlock", new SymbolMorph("cross", 16));
+// 		makeButton.alpha = 0.2;
+// 		makeButton.padding = 1;
+// 		makeButton.hint = localize("Make a block") + "...";
+// 		makeButton.labelShadowColor = shade;
+// 		makeButton.edge = 0;
+// 		makeButton.padding = 3;
+// 		makeButton.fixLayout();
+// 		palette.toolBar.add(makeButton);
+// 	}
+
+// 	palette.toolBar.fixLayout();
+// 	palette.add(palette.toolBar);
+
+// 	// menu:
+// 	palette.userMenu = function () {
+// 		var menu = new MenuMorph();
+// 		ide = ide || this.parentThatIsA(IDE_Morph);
+
+// 		menu.addPair(
+// 			[new SymbolMorph("magnifyingGlass", MorphicPreferences.menuFontSize), localize("find blocks") + "..."],
+// 			() => myself.searchBlocks(),
+// 			"^F"
+// 		);
+// 		if (!ide.config.noOwnBlocks) {
+// 			menu.addItem("hide blocks...", () => new BlockVisibilityDialogMorph(myself).popUp(myself.world()));
+// 			menu.addLine();
+// 			menu.addItem("make a category...", () => this.parentThatIsA(IDE_Morph).createNewCategory());
+// 			if (SpriteMorph.prototype.customCategories.size) {
+// 				menu.addItem("delete a category...", () => this.parentThatIsA(IDE_Morph).deleteUserCategory());
+// 			}
+// 		}
+// 		return menu;
+// 	};
+
+// 	if (category === "unified") {
+// 		// In a Unified Palette custom blocks appear following each category,
+// 		// but there is only 1 make a block button (at the end).
+
+// 		ide = ide || this.parentThatIsA(IDE_Morph);
+// 		showCategories = ide.scene.showCategories;
+// 		showButtons = ide.scene.showPaletteButtons;
+// 		blocks = SpriteMorph.prototype.allCategories().reduce((blocks, category) => {
+// 			let header = [this.categoryText(category), "-"],
+// 				primitives = this.getPrimitiveTemplates(category),
+// 				customs = this.customBlockTemplatesForCategory(category),
+// 				showHeader =
+// 					showCategories &&
+// 					!["lists", "other"].includes(category) &&
+// 					(primitives.some((item) => item instanceof BlockMorph) || customs.length);
+
+// 			// hide category names
+// 			if (!showCategories && category !== "variables") {
+// 				primitives = primitives.filter((each) => each !== "-" && each !== "=" && each && !each.hideWithCategory);
+// 			}
+
+// 			// hide "make / delete a variable" buttons
+// 			if (!showButtons && category === "variables") {
+// 				primitives = primitives.filter(
+// 					(each) => !(each instanceof PushButtonMorph && each.hideable && !(each instanceof ToggleMorph))
+// 				);
+// 			}
+
+// 			return blocks.concat(
+// 				showHeader ? header : [],
+// 				primitives,
+// 				showHeader ? "=" : null,
+// 				customs,
+// 				showHeader ? "=" : "-"
+// 			);
+// 		}, []);
+// 	} else {
+// 		// ensure we do not modify the cached array
+// 		blocks = this.getPrimitiveTemplates(category).slice();
+// 	}
+
+// 	if (category !== "unified" || showButtons) {
+// 		ide = ide || this.parentThatIsA(IDE_Morph);
+// 		if (!ide || !ide.config.noOwnBlocks) {
+// 			blocks.push("=");
+// 			blocks.push(this.makeBlockButton(category));
+// 		}
+// 	}
+
+// 	if (category !== "unified") {
+// 		blocks.push("=");
+// 		blocks.push(...this.customBlockTemplatesForCategory(category));
+// 	}
+// 	if (category === "variables") {
+// 		blocks.push(...this.customBlockTemplatesForCategory("lists"));
+// 		blocks.push(...this.customBlockTemplatesForCategory("other"));
+// 	}
+
+// 	blocks.forEach((block) => {
+// 		if (block === null) {
+// 			return;
+// 		}
+// 		if (block === "-") {
+// 			if (hideNextSpace) {
+// 				return;
+// 			}
+// 			y += unit * 0.8;
+// 			hideNextSpace = true;
+// 		} else if (block === "=") {
+// 			if (hideNextSpace) {
+// 				return;
+// 			}
+// 			y += unit * 1.6;
+// 			hideNextSpace = true;
+// 		} else if (block === "#") {
+// 			x = 0;
+// 			y = ry === 0 ? y : ry;
+// 		} else {
+// 			hideNextSpace = false;
+// 			if (x === 0) {
+// 				y += unit * 0.3;
+// 			}
+// 			block.setPosition(new Point(x, y));
+// 			palette.addContents(block);
+// 			if (block instanceof ToggleMorph) {
+// 				x = block.right() + unit / 2;
+// 			} else if (block instanceof RingMorph) {
+// 				x = block.right() + unit / 2;
+// 				ry = block.bottom();
+// 			} else {
+// 				x = 0;
+// 				y += block.height();
+// 			}
+// 		}
+// 	});
+
+// 	palette.scrollX(palette.padding);
+// 	palette.scrollY(palette.padding);
+// 	return palette;
+// };
+
 StageMorph.prototype.freshPalette = SpriteMorph.prototype.freshPalette;
 
 SpriteMorph.prototype.originalInitBlockMigrations = SpriteMorph.prototype.initBlockMigrations;
@@ -454,16 +728,16 @@ SpriteMorph.prototype.initBlockMigrations = function () {
 			// inputs: [["color"]],
 			offset: 0,
 		},
-		setCostumeShade: {
-			selector: "setEffect",
-			inputs: [["brightness"]],
-			offset: 1,
-		},
-		changeCostumeShade: {
-			selector: "changeEffect",
-			inputs: [["brightness"]],
-			offset: 1,
-		},
+		// setCostumeShade: {
+		// 	selector: "setEffect",
+		// 	inputs: [["brightness"]],
+		// 	offset: 1,
+		// },
+		// changeCostumeShade: {
+		// 	selector: "changeEffect",
+		// 	inputs: [["brightness"]],
+		// 	offset: 1,
+		// },
 		setCostumeColor: {
 			selector: "setEffect",
 			inputs: [["color"]],
@@ -495,6 +769,7 @@ SpriteMorph.prototype.initBlockMigrations = function () {
 	};
 };
 
+SpriteMorph.prototype.initBlockMigrations();
 ////////////////////////////////////////////////////////////////
 // New Block Definitions
 ////////////////////////////////////////////////////////////////
@@ -960,8 +1235,16 @@ SpriteMorph.prototype.exportAsCSV = function (radius_data, angle_data) {
 	var points = orderRadially(radii, angles);
 	writeToWindow(points);
 };
+SpriteMorph.prototype.printList = function (list) {
+	window.open("data:text/" + "plain," + list.asText());
+};
+SpriteMorph.prototype.changeCostumeShade = function (num) {
+	return this.changeEffect("brightness", num);
+};
 
-//# sourceURL=exportAsCSV.js
+SpriteMorph.prototype.setCostumeShade = function (num) {
+	return this.setEffect("brightness", num);
+};
 
 ////////////////////////////////////////////////////////////////
 // Situational Block Definitions
@@ -1565,180 +1848,180 @@ SpriteMorph.prototype.init = function (globals) {
 	this.originalInit(globals);
 };
 
-SpriteMorph.prototype.freshPalette = function (category) {
-	// TODO Quick fix for tutorials (showing custom pen blocks by default)
-	// if (StageMorph.prototype.decategorize) {
-	// 	category = "pen";
-	// }
-	var myself = this,
-		palette = new ScrollFrameMorph(null, null, this.sliderColor),
-		unit = SyntaxElementMorph.prototype.fontSize,
-		ide = this.parentThatIsA(IDE_Morph),
-		showCategories,
-		showButtons,
-		x = 0,
-		y = 5,
-		ry = 0,
-		blocks,
-		hideNextSpace = false,
-		shade = new Color(140, 140, 140),
-		searchButton,
-		makeButton;
+// SpriteMorph.prototype.freshPalette = function (category) {
+// 	// TODO Quick fix for tutorials (showing custom pen blocks by default)
+// 	// if (StageMorph.prototype.decategorize) {
+// 	// 	category = "pen";
+// 	// }
+// 	var myself = this,
+// 		palette = new ScrollFrameMorph(null, null, this.sliderColor),
+// 		unit = SyntaxElementMorph.prototype.fontSize,
+// 		ide = this.parentThatIsA(IDE_Morph),
+// 		showCategories,
+// 		showButtons,
+// 		x = 0,
+// 		y = 5,
+// 		ry = 0,
+// 		blocks,
+// 		hideNextSpace = false,
+// 		shade = new Color(140, 140, 140),
+// 		searchButton,
+// 		makeButton;
 
-	palette.owner = this;
-	palette.padding = unit / 2;
-	palette.color = this.paletteColor;
-	palette.growth = new Point(0, MorphicPreferences.scrollBarSize);
+// 	palette.owner = this;
+// 	palette.padding = unit / 2;
+// 	palette.color = this.paletteColor;
+// 	palette.growth = new Point(0, MorphicPreferences.scrollBarSize);
 
-	// toolbar:
+// 	// toolbar:
 
-	palette.toolBar = new AlignmentMorph("column");
+// 	palette.toolBar = new AlignmentMorph("column");
 
-	searchButton = new PushButtonMorph(this, "searchBlocks", new SymbolMorph("magnifierOutline", 16));
-	searchButton.alpha = 0.2;
-	searchButton.padding = 1;
-	searchButton.hint = localize("find blocks") + "...";
-	searchButton.labelShadowColor = shade;
-	searchButton.edge = 0;
-	searchButton.padding = 3;
-	searchButton.fixLayout();
-	palette.toolBar.add(searchButton);
+// 	searchButton = new PushButtonMorph(this, "searchBlocks", new SymbolMorph("magnifierOutline", 16));
+// 	searchButton.alpha = 0.2;
+// 	searchButton.padding = 1;
+// 	searchButton.hint = localize("find blocks") + "...";
+// 	searchButton.labelShadowColor = shade;
+// 	searchButton.edge = 0;
+// 	searchButton.padding = 3;
+// 	searchButton.fixLayout();
+// 	palette.toolBar.add(searchButton);
 
-	if (!ide || !ide.config.noOwnBlocks) {
-		makeButton = new PushButtonMorph(this, "makeBlock", new SymbolMorph("cross", 16));
-		makeButton.alpha = 0.2;
-		makeButton.padding = 1;
-		makeButton.hint = localize("Make a block") + "...";
-		makeButton.labelShadowColor = shade;
-		makeButton.edge = 0;
-		makeButton.padding = 3;
-		makeButton.fixLayout();
-		palette.toolBar.add(makeButton);
-	}
+// 	if (!ide || !ide.config.noOwnBlocks) {
+// 		makeButton = new PushButtonMorph(this, "makeBlock", new SymbolMorph("cross", 16));
+// 		makeButton.alpha = 0.2;
+// 		makeButton.padding = 1;
+// 		makeButton.hint = localize("Make a block") + "...";
+// 		makeButton.labelShadowColor = shade;
+// 		makeButton.edge = 0;
+// 		makeButton.padding = 3;
+// 		makeButton.fixLayout();
+// 		palette.toolBar.add(makeButton);
+// 	}
 
-	palette.toolBar.fixLayout();
-	palette.add(palette.toolBar);
+// 	palette.toolBar.fixLayout();
+// 	palette.add(palette.toolBar);
 
-	// menu:
-	palette.userMenu = function () {
-		var menu = new MenuMorph();
-		ide = ide || this.parentThatIsA(IDE_Morph);
+// 	// menu:
+// 	palette.userMenu = function () {
+// 		var menu = new MenuMorph();
+// 		ide = ide || this.parentThatIsA(IDE_Morph);
 
-		menu.addPair(
-			[new SymbolMorph("magnifyingGlass", MorphicPreferences.menuFontSize), localize("find blocks") + "..."],
-			() => myself.searchBlocks(),
-			"^F"
-		);
-		if (!ide.config.noOwnBlocks) {
-			menu.addItem("hide blocks...", () => new BlockVisibilityDialogMorph(myself).popUp(myself.world()));
-			menu.addLine();
-			menu.addItem("make a category...", () => this.parentThatIsA(IDE_Morph).createNewCategory());
-			if (SpriteMorph.prototype.customCategories.size) {
-				menu.addItem("delete a category...", () => this.parentThatIsA(IDE_Morph).deleteUserCategory());
-			}
-		}
-		return menu;
-	};
+// 		menu.addPair(
+// 			[new SymbolMorph("magnifyingGlass", MorphicPreferences.menuFontSize), localize("find blocks") + "..."],
+// 			() => myself.searchBlocks(),
+// 			"^F"
+// 		);
+// 		if (!ide.config.noOwnBlocks) {
+// 			menu.addItem("hide blocks...", () => new BlockVisibilityDialogMorph(myself).popUp(myself.world()));
+// 			menu.addLine();
+// 			menu.addItem("make a category...", () => this.parentThatIsA(IDE_Morph).createNewCategory());
+// 			if (SpriteMorph.prototype.customCategories.size) {
+// 				menu.addItem("delete a category...", () => this.parentThatIsA(IDE_Morph).deleteUserCategory());
+// 			}
+// 		}
+// 		return menu;
+// 	};
 
-	if (category === "unified") {
-		// In a Unified Palette custom blocks appear following each category,
-		// but there is only 1 make a block button (at the end).
-		ide = ide || this.parentThatIsA(IDE_Morph);
-		showCategories = ide.scene.showCategories;
-		showButtons = ide.scene.showPaletteButtons;
-		blocks = SpriteMorph.prototype.allCategories().reduce((blocks, category) => {
-			let header = [this.categoryText(category), "-"],
-				primitives = this.getPrimitiveTemplates(category),
-				customs = this.customBlockTemplatesForCategory(category),
-				showHeader =
-					showCategories &&
-					!["lists", "other"].includes(category) &&
-					(primitives.some((item) => item instanceof BlockMorph) || customs.length);
+// 	if (category === "unified") {
+// 		// In a Unified Palette custom blocks appear following each category,
+// 		// but there is only 1 make a block button (at the end).
+// 		ide = ide || this.parentThatIsA(IDE_Morph);
+// 		showCategories = ide.scene.showCategories;
+// 		showButtons = ide.scene.showPaletteButtons;
+// 		blocks = SpriteMorph.prototype.allCategories().reduce((blocks, category) => {
+// 			let header = [this.categoryText(category), "-"],
+// 				primitives = this.getPrimitiveTemplates(category),
+// 				customs = this.customBlockTemplatesForCategory(category),
+// 				showHeader =
+// 					showCategories &&
+// 					!["lists", "other"].includes(category) &&
+// 					(primitives.some((item) => item instanceof BlockMorph) || customs.length);
 
-			// hide category names
-			if (!showCategories && category !== "variables") {
-				primitives = primitives.filter((each) => each !== "-" && each !== "=" && each && !each.hideWithCategory);
-			}
+// 			// hide category names
+// 			if (!showCategories && category !== "variables") {
+// 				primitives = primitives.filter((each) => each !== "-" && each !== "=" && each && !each.hideWithCategory);
+// 			}
 
-			// hide "make / delete a variable" buttons
-			if (!showButtons && category === "variables") {
-				primitives = primitives.filter(
-					(each) => !(each instanceof PushButtonMorph && each.hideable && !(each instanceof ToggleMorph))
-				);
-			}
+// 			// hide "make / delete a variable" buttons
+// 			if (!showButtons && category === "variables") {
+// 				primitives = primitives.filter(
+// 					(each) => !(each instanceof PushButtonMorph && each.hideable && !(each instanceof ToggleMorph))
+// 				);
+// 			}
 
-			return blocks.concat(
-				showHeader ? header : [],
-				primitives,
-				showHeader ? "=" : null,
-				customs,
-				showHeader ? "=" : "-"
-			);
-		}, []);
-	} else {
-		// ensure we do not modify the cached array
-		blocks = this.getPrimitiveTemplates(category).slice();
-	}
+// 			return blocks.concat(
+// 				showHeader ? header : [],
+// 				primitives,
+// 				showHeader ? "=" : null,
+// 				customs,
+// 				showHeader ? "=" : "-"
+// 			);
+// 		}, []);
+// 	} else {
+// 		// ensure we do not modify the cached array
+// 		blocks = this.getPrimitiveTemplates(category).slice();
+// 	}
 
-	if (category !== "unified" || showButtons) {
-		ide = ide || this.parentThatIsA(IDE_Morph);
-		if (!ide || !ide.config.noOwnBlocks) {
-			blocks.push("=");
-			blocks.push(this.makeBlockButton(category));
-		}
-	}
+// 	if (category !== "unified" || showButtons) {
+// 		ide = ide || this.parentThatIsA(IDE_Morph);
+// 		if (!ide || !ide.config.noOwnBlocks) {
+// 			blocks.push("=");
+// 			blocks.push(this.makeBlockButton(category));
+// 		}
+// 	}
 
-	if (category !== "unified") {
-		blocks.push("=");
-		blocks.push(...this.customBlockTemplatesForCategory(category));
-	}
-	if (category === "variables") {
-		blocks.push(...this.customBlockTemplatesForCategory("lists"));
-		blocks.push(...this.customBlockTemplatesForCategory("other"));
-	}
+// 	if (category !== "unified") {
+// 		blocks.push("=");
+// 		blocks.push(...this.customBlockTemplatesForCategory(category));
+// 	}
+// 	if (category === "variables") {
+// 		blocks.push(...this.customBlockTemplatesForCategory("lists"));
+// 		blocks.push(...this.customBlockTemplatesForCategory("other"));
+// 	}
 
-	blocks.forEach((block) => {
-		if (block === null) {
-			return;
-		}
-		if (block === "-") {
-			if (hideNextSpace) {
-				return;
-			}
-			y += unit * 0.8;
-			hideNextSpace = true;
-		} else if (block === "=") {
-			if (hideNextSpace) {
-				return;
-			}
-			y += unit * 1.6;
-			hideNextSpace = true;
-		} else if (block === "#") {
-			x = 0;
-			y = ry === 0 ? y : ry;
-		} else {
-			hideNextSpace = false;
-			if (x === 0) {
-				y += unit * 0.3;
-			}
-			block.setPosition(new Point(x, y));
-			palette.addContents(block);
-			if (block instanceof ToggleMorph) {
-				x = block.right() + unit / 2;
-			} else if (block instanceof RingMorph) {
-				x = block.right() + unit / 2;
-				ry = block.bottom();
-			} else {
-				x = 0;
-				y += block.height();
-			}
-		}
-	});
+// 	blocks.forEach((block) => {
+// 		if (block === null) {
+// 			return;
+// 		}
+// 		if (block === "-") {
+// 			if (hideNextSpace) {
+// 				return;
+// 			}
+// 			y += unit * 0.8;
+// 			hideNextSpace = true;
+// 		} else if (block === "=") {
+// 			if (hideNextSpace) {
+// 				return;
+// 			}
+// 			y += unit * 1.6;
+// 			hideNextSpace = true;
+// 		} else if (block === "#") {
+// 			x = 0;
+// 			y = ry === 0 ? y : ry;
+// 		} else {
+// 			hideNextSpace = false;
+// 			if (x === 0) {
+// 				y += unit * 0.3;
+// 			}
+// 			block.setPosition(new Point(x, y));
+// 			palette.addContents(block);
+// 			if (block instanceof ToggleMorph) {
+// 				x = block.right() + unit / 2;
+// 			} else if (block instanceof RingMorph) {
+// 				x = block.right() + unit / 2;
+// 				ry = block.bottom();
+// 			} else {
+// 				x = 0;
+// 				y += block.height();
+// 			}
+// 		}
+// 	});
 
-	palette.scrollX(palette.padding);
-	palette.scrollY(palette.padding);
-	return palette;
-};
+// 	palette.scrollX(palette.padding);
+// 	palette.scrollY(palette.padding);
+// 	return palette;
+// };
 
 Costume.prototype.shrinkToFit = function (extentPoint) {
 	if (this.getNoFit()) return;
@@ -2803,3 +3086,115 @@ SpriteMorph.prototype.drawLine = function (start, dest, isBorder = false) {
 // 		progress.hidden = bool;
 // 	}
 // };
+
+////////////////////////////////////////////////////////////////
+//Legacy Blocks
+////////////////////////////////////////////////////////////////
+
+// SpriteMorph.prototype.changeCostumeShade = function (num) {
+// 	return function (num) {
+// 		num = (num * 255) / 100;
+// 		var flipBackX = false,
+// 			flipBackY = false,
+// 			costume = this.costumes.contents[this.getCostumeIdx() - 1];
+// 		if (this.flippedY) {
+// 			this.flipYAxis();
+// 			flipBackY = true;
+// 		}
+// 		if (this.flippedX) {
+// 			this.flipXAxis();
+// 			flipBackX = true;
+// 		}
+// 		if (!costume.originalPixels) {
+// 			costume.originalPixels = costume.contents
+// 				.getContext("2d")
+// 				.getImageData(0, 0, costume.contents.width, costume.contents.height);
+// 		}
+// 		if (!costume.costumeColor) {
+// 			costume.costumeColor = new Color(0, 0, 0);
+// 		}
+// 		var temp = costume.contents.getContext("2d").getImageData(0, 0, costume.contents.width, costume.contents.height);
+// 		for (var I = 0, L = temp.data.length; I < L; I += 4) {
+// 			if (temp.data[I + 3] > 0) {
+// 				// If it's not a transparent pixel
+// 				temp.data[I] = (temp.data[I] / 255) * num;
+// 				temp.data[I + 1] = (temp.data[I + 1] / 255) * num;
+// 				temp.data[I + 2] = (temp.data[I + 2] / 255) * num;
+// 			}
+// 		}
+// 		costume.contents.getContext("2d").putImageData(temp, 0, 0);
+// 		this.costumes.contents[this.getCostumeIdx() - 1] = costume;
+// 		if (flipBackY) {
+// 			this.flipYAxis();
+// 		}
+// 		if (flipBackX) {
+// 			this.flipXAxis();
+// 		}
+// 		this.changed();
+// 		this.drawNew();
+// 	};
+// };
+
+// (function () {
+// 	return function (num) {
+// 	num = num*255/100;
+// 	var flipBackX = false, flipBackY = false, costume = this.costumes.contents[this.getCostumeIdx()-1];
+// 	if(this.flippedY)
+// 	{
+// 		this.flipYAxis();
+// 		flipBackY = true;
+// 	}
+// 	if(this.flippedX)
+// 	{
+// 		this.flipXAxis();
+// 		flipBackX = true;
+// 	}
+// 	if(costume.colored)
+// 	{
+// 		if(!this.costumes.contents[this.getCostumeIdx()-1].costumeColor) {
+// 			 this.costumes.contents[this.getCostumeIdx()-1].costumeColor = new Color(0,0,0);
+// 		}
+// 		var hsv = this.costumes.contents[this.getCostumeIdx()-1].costumeColor.hsv();
+// 		hsv[1] = 1;
+// 		hsv[2] = Math.max(Math.min(+num || 0, 100), 0) / 100;
+// 		this.costumes.contents[this.getCostumeIdx()-1].costumeColor.set_hsv.apply(this.costumes.contents[this.getCostumeIdx()-1].costumeColor, hsv);
+// 		this.costumes.contents[this.getCostumeIdx()-1].setColor(this.costumes.contents[this.getCostumeIdx()-1].costumeColor);
+// 	}
+// 	else{
+// 		if(!costume.originalPixels) {
+// 			costume.originalPixels = costume.contents.getContext('2d')
+// 			   .getImageData(0, 0, costume.contents.width,
+// 				  costume.contents.height);
+// 		 }
+// 		 if(!costume.costumeColor) {
+// 			 costume.costumeColor = new Color(0,0,0);
+// 		 }
+// 		var temp = costume.contents.getContext('2d')
+// 			   .getImageData(0, 0, costume.contents.width,
+// 				  costume.contents.height);
+// 		 for(var I = 0, L = costume.originalPixels.data.length; I < L; I += 4){
+// 			if(temp.data[I + 3] > 0){
+// 			   // If it's not a transparent pixel
+// 			   temp.data[I] = costume.originalPixels.data[I] / 255 * num;
+// 			   temp.data[I + 1] = costume.originalPixels.data[I + 1] / 255 * num;
+// 			   temp.data[I + 2] = costume.originalPixels.data[I + 2] / 255 * num;
+// 			}
+// 		 }
+// 		 costume.contents.getContext('2d')
+// 			.putImageData(temp, 0, 0);
+// 		this.costumes.contents[this.getCostumeIdx()-1] = costume;
+// 	}
+// 	if(flipBackY)
+// 	{
+// 		this.flipYAxis();
+// 	}
+// 	if(flipBackX)
+// 	{
+// 		this.flipXAxis();
+// 	}
+//     this.changed();
+//     this.drawNew();
+// 	};
+// }());
+
+// //# sourceURL=setCostumeShade.js

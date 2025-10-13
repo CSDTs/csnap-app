@@ -4,11 +4,11 @@ ProjectDialogMorph.prototype.classroomListField = null;
 ProjectDialogMorph.prototype.originalInit = ProjectDialogMorph.prototype.init;
 
 ProjectDialogMorph.prototype.init = function (ide, task) {
-	this.originalInit(ide, task);
-
 	//Classrooms
 	this.classroomList = [];
 	this.classroomListField = null;
+
+	this.originalInit(ide, task);
 };
 
 ProjectDialogMorph.prototype.buildContents = function () {
@@ -195,7 +195,7 @@ ProjectDialogMorph.prototype.setSource = function (source) {
 				(response) => {
 					// Don't show cloud projects if user has since switched panes.
 					if (this.source === "cloud") {
-						this.installCloudProjectList(response.projects);
+						this.installCloudProjectList(response);
 					}
 					msg.destroy();
 				},
@@ -573,6 +573,7 @@ ProjectDialogMorph.prototype.fixLayout = function () {
 };
 
 ProjectDialogMorph.prototype.installCloudProjectList = function (pl) {
+	console.log("Installing cloud project list:", pl);
 	this.projectList = pl[0] ? pl : [];
 	this.projectList.sort((x, y) => (x.name.toLowerCase() < y.name.toLowerCase() ? -1 : 1));
 
@@ -581,12 +582,12 @@ ProjectDialogMorph.prototype.installCloudProjectList = function (pl) {
 		this.projectList,
 		this.projectList.length > 0
 			? (element) => {
-					return element.projectname || element;
+					return element.name || element;
 				}
 			: null,
 		[
 			// format: display shared project names bold
-			["bold", (proj) => proj.ispublic],
+			["bold", (proj) => proj.approved],
 			["italic", (proj) => proj.ispublished],
 		],
 		() => this.ok()
@@ -620,7 +621,7 @@ ProjectDialogMorph.prototype.installCloudProjectList = function (pl) {
 				this.preview.rerender();
 			});
 			new SpeechBubbleMorph(
-				new TextMorph(localize("last changed") + "\n" + item.lastupdated, null, null, null, null, "center")
+				new TextMorph(localize("last changed") + "\n" + item.when_modified, null, null, null, null, "center")
 			).popUp(this.world(), this.preview.rightCenter().add(new Point(2, 0)));
 		}
 		if (item.ispublic) {
@@ -645,7 +646,8 @@ ProjectDialogMorph.prototype.installCloudProjectList = function (pl) {
 	};
 	this.body.add(this.listField);
 	if (this.task === "open" || this.task === "add") {
-		this.recoverButton.show();
+		// this.recoverButton.show();
+		this.recoverButton.hide();
 	}
 	// this.shareButton.show();
 	this.unshareButton.hide();
@@ -705,13 +707,15 @@ IDE_Morph.prototype.init = function (config) {
 	this.hideFileBtn = false;
 	this.hideControlBtns = false;
 	this.hideSpriteBar = false;
-	this.hideCamera = true;
+	this.hideCamera = config?.hideCamera || false;
 	this.renderBlocks = true;
 	this.renderKeyboardButton = true;
 	this.tutorialMode = false;
 
+	// this.decategorize = false;
+
 	// Applying correct asset path for projects
-	this.asset_path = "./";
+	this.asset_path = config?.assetPath || "./";
 	////////////////////////////////
 
 	this.originalInit(config);
@@ -720,6 +724,45 @@ IDE_Morph.prototype.init = function (config) {
 IDE_Morph.prototype.resourceURL = function () {
 	var args = Array.prototype.slice.call(arguments, 0);
 	return this.asset_path + args.join("/");
+};
+
+// Override autoLoadExtensions to use asset_path for relative URLs
+IDE_Morph.prototype.autoLoadExtensions = function () {
+	// experimental - allow auto-loading extensions from urls specified
+	// in global variables whose names start with "__module__".
+	var urls = [];
+	Object.keys(this.globalVariables.vars).forEach((vName) => {
+		var val;
+		if (vName.startsWith("__module__")) {
+			val = this.globalVariables.getVar(vName);
+			if (isString(val)) {
+				urls.push({ name: vName, url: val });
+			}
+		}
+	});
+	urls.forEach((item) => {
+		var scriptElement, fullUrl;
+		if (contains(SnapExtensions.scripts, item.url)) {
+			return;
+		}
+
+		// Prepend asset_path for relative URLs
+		fullUrl = item.url;
+		if (!item.url.startsWith("http://") && !item.url.startsWith("https://") && !item.url.startsWith("/")) {
+			fullUrl = this.asset_path + item.url;
+			// Update the global variable with the full path so init.js can use it
+			this.globalVariables.setVar(item.name, fullUrl);
+		}
+
+		if (Process.prototype.enableJS || SnapExtensions.urls.some((any) => item.url.indexOf(any) === 0)) {
+			scriptElement = document.createElement("script");
+			scriptElement.onload = () => {
+				SnapExtensions.scripts.push(item.url);
+			};
+			document.head.appendChild(scriptElement);
+			scriptElement.src = fullUrl; // Use fullUrl instead of url
+		}
+	});
 };
 
 IDE_Morph.prototype.createCorral = function (keepSceneAlbum) {
@@ -920,7 +963,7 @@ IDE_Morph.prototype.createCorralBar = function () {
 		cambutton.fixLayout();
 		cambutton.setCenter(this.corralBar.center());
 		cambutton.setLeft(this.corralBar.left() + padding + newbutton.width() + padding + paintbutton.width() + padding);
-		this.corralBar.add(cambutton);
+		if (!this.hideCamera) this.corralBar.add(cambutton);
 		document.addEventListener("cameraDisabled", (event) => {
 			cambutton.disable();
 			cambutton.hint = CamSnapshotDialogMorph.prototype.notSupportedMessage;
@@ -986,7 +1029,12 @@ IDE_Morph.prototype.createCorralBar = function () {
 	xlabel.fixLayout();
 
 	if (!IDE_Morph.prototype.hideCorralBar) {
-		xlabel.setLeft(this.corralBar.left() + padding + (newbutton.width() + padding) * 2);
+		// Calculate position based on available buttons
+		let buttonOffset = padding + newbutton.width() + padding + paintbutton.width() + padding;
+		if (CamSnapshotDialogMorph.prototype.enableCamera && !this.hideCamera) {
+			buttonOffset += cambutton.width() + padding;
+		}
+		xlabel.setLeft(this.corralBar.left() + buttonOffset);
 	} else {
 		xlabel.setLeft(this.corralBar.left() + padding);
 	}
@@ -996,7 +1044,12 @@ IDE_Morph.prototype.createCorralBar = function () {
 	ylabel.fixLayout();
 
 	if (!IDE_Morph.prototype.hideCorralBar) {
-		ylabel.setLeft(this.corralBar.left() + padding + (newbutton.width() + padding) * 2 + 100);
+		// Calculate position based on available buttons
+		let buttonOffset = padding + newbutton.width() + padding + paintbutton.width() + padding;
+		if (CamSnapshotDialogMorph.prototype.enableCamera && !this.hideCamera) {
+			buttonOffset += cambutton.width() + padding;
+		}
+		ylabel.setLeft(this.corralBar.left() + buttonOffset + 100);
 	} else {
 		ylabel.setLeft(this.corralBar.left() + padding + 100);
 	}
@@ -1015,12 +1068,13 @@ IDE_Morph.prototype.createCorralBar = function () {
 		}
 		this.setWidth(myself.stage.width());
 		trashbutton.setRight(this.right() - padding);
-		updateDisplayOf(cambutton);
+
+		if (!this.hideCamera) updateDisplayOf(cambutton);
 		updateDisplayOf(paintbutton);
 
 		//TODO Hide the trash, camera, and brush in the corral bar for tutorials
 		// if (!IDE_Morph.prototype.hideCorralBar) trashbutton.setRight(this.right() - padding);
-		// if (!myself.hideCamera) updateDisplayOf(cambutton);
+
 		// if (!IDE_Morph.prototype.hideCorralBar) updateDisplayOf(paintbutton);
 	};
 
@@ -1492,10 +1546,10 @@ IDE_Morph.prototype.updateCorralCoordinates = function (xlabel, ylabel) {
 
 	Morph.prototype.trackChanges = false;
 	if (
-		MouseX > StageMorph.prototype.dimensions.x / 2 ||
-		MouseY > StageMorph.prototype.dimensions.y / 2 ||
-		MouseX < StageMorph.prototype.dimensions.x / -2 ||
-		MouseY < StageMorph.prototype.dimensions.y / -2
+		MouseX > this.stage.dimensions.x / 2 ||
+		MouseY > this.stage.dimensions.y / 2 ||
+		MouseX < this.stage.dimensions.x / -2 ||
+		MouseY < this.stage.dimensions.y / -2
 	) {
 		xlabel.text = "";
 		ylabel.text = "";
@@ -1717,29 +1771,22 @@ IDE_Morph.prototype.createCategories = function () {
 	}
 
 	// TODO De-categorizes the blocks for tutorials
-	// if (!StageMorph.prototype.decategorize) {
-	// 	SpriteMorph.prototype.categories.forEach((cat) => {
-	// 		if (!contains(["lists", "other"], cat)) {
-	// 			addCategoryButton(cat);
-	// 		}
-	// 	});
-	// }
-
+	// if (!this.decategorize) {
 	SpriteMorph.prototype.categories.forEach((cat) => {
 		if (!contains(["lists", "other"], cat)) {
 			addCategoryButton(cat);
 		}
 	});
-
+	// }
 	// sort alphabetically
 	Array.from(SpriteMorph.prototype.customCategories.keys())
 		.sort()
 		.forEach((name) => addCustomCategoryButton(name, SpriteMorph.prototype.customCategories.get(name)));
 
 	// TODO De-categorizes the blocks for tutorials, tweaks the layout based on it
-	// if (!StageMorph.prototype.decategorize) fixCategoriesLayout();
-	// if (StageMorph.prototype.decategorize) this.categories.setHeight(84);
+	// if (!this.decategorize)
 	fixCategoriesLayout();
+	// if (this.decategorize) this.categories.setHeight(84);
 	this.add(this.categories);
 };
 
@@ -1948,8 +1995,8 @@ IDE_Morph.prototype.createSpriteBar = function () {
 	tab.fixLayout();
 	tabBar.add(tab);
 
-	// TODO Hide the costume tab for tutorials
-	// if (StageMorph.prototype.hideCostumesTab) tab.hide();
+	//  Hide the costume tab for tutorials
+	if (this.hideCostumesTab) tab.hide();
 
 	tab = new TabMorph(
 		tabColors,
@@ -1967,8 +2014,8 @@ IDE_Morph.prototype.createSpriteBar = function () {
 	tab.fixLayout();
 	tabBar.add(tab);
 
-	// TODO Hide the sounds tab for tutorials
-	// if (StageMorph.prototype.hideSoundsTab) tab.hide();
+	// Hide the sounds tab for tutorials
+	if (this.hideSoundsTab) tab.hide();
 
 	tabBar.fixLayout();
 	tabBar.children.forEach((each) => each.refresh());
@@ -3428,11 +3475,20 @@ IDE_Morph.prototype.saveProjectToCloud = function (name) {
 			this.getProjectName(),
 			projectBody,
 			(data) => {
+				// this.recordSavedChanges();
+				// this.cloud.updateURL(data.id);
+				// this.cloud.project_id = data.id;
+				// this.cloud.project_approved = data.approved;
+				// this.showMessage("saved.", 2);
 				this.recordSavedChanges();
-				this.cloud.updateURL(data.id);
-				this.cloud.project_id = data.id;
-				this.cloud.project_approved = data.approved;
-				this.showMessage("saved.", 2);
+				if (data && data.id) {
+					this.cloud.updateURL(data.id);
+					this.cloud.project_id = data.id;
+					this.cloud.project_approved = data.approved;
+					this.showMessage("saved.", 2);
+				} else {
+					this.showMessage("Failed to save project.", 2);
+				}
 			},
 			this.cloudError()
 		);
@@ -3460,13 +3516,22 @@ IDE_Morph.prototype.saveAsProjectToCloud = function (name) {
 		this.getProjectName(),
 		projectBody,
 		(data) => {
+			// this.recordSavedChanges();
+
+			// this.cloud.updateURL(data.id);
+			// this.cloud.project_id = data.id;
+			// this.cloud.project_approved = data.approved;
+
+			// this.showMessage("saved.", 2);
 			this.recordSavedChanges();
-
-			this.cloud.updateURL(data.id);
-			this.cloud.project_id = data.id;
-			this.cloud.project_approved = data.approved;
-
-			this.showMessage("saved.", 2);
+			if (data && data.id) {
+				this.cloud.updateURL(data.id);
+				this.cloud.project_id = data.id;
+				this.cloud.project_approved = data.approved;
+				this.showMessage("saved.", 2);
+			} else {
+				this.showMessage("Failed to save project.", 2);
+			}
 		},
 		this.cloudError()
 	);

@@ -21,7 +21,7 @@
 		<meta name="theme-color" content="white" />
 		<meta name="mobile-web-app-capable" content="yes" />
 		<meta name="mobile-web-app-status-bar-style" content="black" />
-		<meta name="mobile-web-app-title" content="Snap!" />
+		<meta name="mobile-web-app-title" content="CSnap! Pro" />
 		<meta name="msapplication-TileImage" content="img/snap-icon-144.png" />
 		<meta name="msapplication-TileColor" content="#FFFFFF" />
 
@@ -93,10 +93,12 @@
 					};
 
 				if ("serviceWorker" in navigator) {
-					navigator.serviceWorker.register("sw.js");
+					navigator.serviceWorker.register("./sw.js");
 				}
 				world = new WorldMorph(document.getElementById("world"));
-				new IDE_Morph().openIn(world);
+				new IDE_Morph({
+					assetPath: "./",
+				}).openIn(world);
 				requestAnimationFrame(loop);
 			};
 		</script>

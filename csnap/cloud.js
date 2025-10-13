@@ -12,6 +12,8 @@ Cloud.prototype.knownDomains = {
 	render: "https://csdt-development-latest.onrender.com",
 };
 
+Cloud.prototype.defaultDomain = Cloud.prototype.knownDomains["Snap!Cloud"];
+
 Cloud.prototype.init = function () {
 	this.originalInit();
 	this.apiBasePath = "/api";
@@ -70,6 +72,45 @@ Cloud.genericErrorMessage =
 
 // TODO: determineCloudDomain has the currentDomain = window.location.origin while the current is .host...
 
+Cloud.prototype.determineCloudDomain = function () {
+	// We dynamically determine the domain of the cloud server.
+	// This allows for easy mirrors and development servers.
+	// The domain is determined by:
+	// 1. <meta name='snap-cloud-domain' location="X"> in snap.html.
+	// 2. The current page's domain
+	var currentDomain = window.location.host, // host includes the port.
+		metaTag = document.head.querySelector("[name='snap-cloud-domain']"),
+		cloudDomain = this.defaultDomain,
+		domainMap = this.knownDomains;
+
+	if (metaTag) {
+		return metaTag.getAttribute("location");
+	}
+
+	// Special case: if running on 127.0.0.1:5500, use the localhost one
+	if (currentDomain === "127.0.0.1:5500") {
+		// Try to find a localhost domain in knownDomains
+		if (domainMap["localhost (default)"]) {
+			console.log(currentDomain, domainMap["localhost (default)"]);
+			return domainMap["localhost (default)"];
+		} else if (domainMap["localhost"]) {
+			console.log(currentDomain, domainMap["localhost"]);
+			return domainMap["localhost"];
+		}
+	}
+
+	Object.keys(domainMap).some(function (name) {
+		var server = domainMap[name];
+		if (Cloud.isMatchingDomain(currentDomain, server)) {
+			cloudDomain = server;
+			return true;
+		}
+		return false;
+	});
+
+	return cloudDomain;
+};
+
 Cloud.prototype.request = function (method, path, onSuccess, onError, errorMsg, wantsRawResponse, body) {
 	if (this.disabled) {
 		return;
@@ -79,6 +120,11 @@ Cloud.prototype.request = function (method, path, onSuccess, onError, errorMsg, 
 		myself = this,
 		fullPath =
 			this.url + (path.indexOf("%username") > -1 ? path.replace("%username", encodeURIComponent(this.username)) : path);
+
+	// Remove duplicate /api/api if present
+	if (fullPath.includes("/api/api")) {
+		fullPath = fullPath.replace("/api/api", "/api");
+	}
 
 	if (path.includes("/accounts/")) {
 		fullPath = this.determineCloudDomain() + path;
@@ -90,11 +136,19 @@ Cloud.prototype.request = function (method, path, onSuccess, onError, errorMsg, 
 
 	try {
 		request.open(method, fullPath, true);
-		request.setRequestHeader("Content-Type", "application/json; charset=utf-8");
-
-		// Add CSRF token automatically for non-safe methods
-		if (typeof csrftoken !== "undefined" && !csrfSafeMethod(method) && sameOrigin(fullPath)) {
-			request.setRequestHeader("X-CSRFToken", csrftoken);
+		// In the request method, around line 99-111:
+		if (body instanceof FormData) {
+			// Don't set Content-Type for FormData - let browser set it automatically
+			// Add CSRF token as header for DRF API views
+			if (typeof csrftoken !== "undefined" && !csrfSafeMethod(method) && sameOrigin(fullPath)) {
+				request.setRequestHeader("X-CSRFToken", csrftoken);
+			}
+		} else {
+			request.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+			// Add CSRF token as header for JSON requests
+			if (typeof csrftoken !== "undefined" && !csrfSafeMethod(method) && sameOrigin(fullPath)) {
+				request.setRequestHeader("X-CSRFToken", csrftoken);
+			}
 		}
 
 		request.withCredentials = true;
@@ -123,7 +177,13 @@ Cloud.prototype.request = function (method, path, onSuccess, onError, errorMsg, 
 				}
 			}
 		};
-		request.send(body);
+		if (body instanceof FormData) {
+			request.send(body);
+		} else if (body && typeof body === "object") {
+			request.send(JSON.stringify(body));
+		} else {
+			request.send(body);
+		}
 	} catch (err) {
 		onError.call(this, err.toString(), "Cloud Error");
 	}
@@ -136,6 +196,48 @@ Cloud.prototype.initSession = function (onSuccess) {
 	myself.checkCredentials(onSuccess);
 };
 
+// Cloud.prototype.checkCredentials = function (onSuccess, onError, response) {
+// 	var myself = this;
+// 	this.getCurrentUser(
+// 		function (user) {
+// 			if (user.username) {
+// 				myself.username = user.username;
+// 				myself.user_id = user.id;
+// 				myself.verified = true;
+// 			}
+// 			if (onSuccess) {
+// 				console.log(response);
+// 				onSuccess.call(null, user.username, user.id, user.role, response ? JSON.parse(response) : null);
+// 			}
+// 		},
+// 		(data) => {
+// 			console.log(data);
+// 			onError(data);
+// 		}
+// 	);
+// };
+
+// Cloud.prototype.login = function (username, password, persist, onSuccess, onError) {
+// 	var myself = this;
+
+// 	this.getCSRFToken();
+
+// 	this.request(
+// 		"POST",
+// 		"/accounts/login/",
+// 		function (response) {
+// 			myself.checkCredentials(onSuccess, onError, response);
+// 		},
+// 		onError,
+// 		"login failed",
+// 		"false",
+// 		{
+// 			login: username,
+// 			password: password,
+// 		}
+// 	);
+// };
+
 Cloud.prototype.checkCredentials = function (onSuccess, onError, response) {
 	var myself = this;
 	this.getCurrentUser(
@@ -144,9 +246,23 @@ Cloud.prototype.checkCredentials = function (onSuccess, onError, response) {
 				myself.username = user.username;
 				myself.user_id = user.id;
 				myself.verified = true;
+				// console.log(user);
 			}
 			if (onSuccess) {
-				onSuccess.call(null, user.username, user.id, user.role, response ? JSON.parse(response) : null);
+				// console.log(response);
+				// Don't try to parse HTML as JSON
+				// Just pass the response as-is or null
+				var parsedResponse = null;
+				try {
+					// Only try to parse if it looks like JSON
+					if (response && typeof response === "string" && response.trim().startsWith("{")) {
+						parsedResponse = JSON.parse(response);
+					}
+				} catch (e) {
+					// If parsing fails, just use null
+					parsedResponse = null;
+				}
+				onSuccess.call(null, user.username, user.id, user.role, parsedResponse);
 			}
 		},
 		(data) => {
@@ -161,20 +277,47 @@ Cloud.prototype.login = function (username, password, persist, onSuccess, onErro
 
 	this.getCSRFToken();
 
-	this.request(
-		"POST",
-		"/accounts/login/",
-		function (response) {
-			myself.checkCredentials(onSuccess, onError, response);
-		},
-		onError,
-		"login failed",
-		"false",
-		{
-			login: username,
-			password: password,
+	// Create form data instead of JSON
+	var formData = new FormData();
+	formData.append("login", username);
+	formData.append("password", password);
+	if (persist) {
+		formData.append("remember", "on");
+	}
+
+	// Use XMLHttpRequest directly for form submission
+	var request = new XMLHttpRequest();
+	request.open("POST", this.determineCloudDomain() + "/accounts/login/", true);
+
+	// Don't set Content-Type for FormData - browser will set it automatically
+	// request.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+
+	// Add CSRF token
+	if (typeof csrftoken !== "undefined") {
+		request.setRequestHeader("X-CSRFToken", csrftoken);
+	}
+
+	request.withCredentials = true;
+
+	request.onreadystatechange = function () {
+		if (request.readyState === 4) {
+			if (request.status === 200) {
+				// Check if we got redirected (success) or got the form back (failure)
+				var responseText = request.responseText;
+				if (responseText.includes("Sign In") || responseText.includes("Welcome back!")) {
+					// Still showing login form = failed
+					onError("Invalid credentials");
+				} else {
+					// Success - now get user info
+					myself.checkCredentials(onSuccess, onError);
+				}
+			} else {
+				onError("Login failed with status: " + request.status);
+			}
 		}
-	);
+	};
+
+	request.send(formData);
 };
 
 Cloud.prototype.logout = function (onSuccess, onError) {
@@ -287,17 +430,23 @@ Cloud.prototype.saveProject = function (projectName, body, onSuccess, onError) {
 			let completed = 0;
 
 			let successXML = function (data) {
+				console.log("XML upload success:", data);
 				completed++;
 				xml_id = data.id;
+				console.log("xml_id set to:", xml_id);
 				if (completed === 2) {
+					console.log("Creating project with xml_id:", xml_id, "img_id:", img_id);
 					myself.createProject(projectName, xml_id, img_id, onSuccess, onError);
 				}
 			};
 
 			let successIMG = function (data) {
+				console.log("IMG upload success:", data);
 				completed++;
 				img_id = data.id;
+				console.log("img_id set to:", img_id);
 				if (completed === 2) {
+					console.log("Creating project with xml_id:", xml_id, "img_id:", img_id);
 					myself.createProject(projectName, xml_id, img_id, onSuccess, onError);
 				}
 			};
@@ -316,15 +465,23 @@ Cloud.prototype.saveProject = function (projectName, body, onSuccess, onError) {
 Cloud.prototype.saveFile = function (file, onSuccess, onError) {
 	this.getCSRFToken();
 
-	this.request("PUT", this.apiBasePath + "/files/", onSuccess, onError, "saveFile failed", file);
+	this.request("PUT", this.apiBasePath + "/files/", onSuccess, onError, "saveFile failed", false, file);
 };
 
 Cloud.prototype.createProject = function (projectName, dataNum, imgNum, onSuccess, onError) {
 	if (this.project_id === null || this.project_id === undefined || typeof this.project_id === undefined) {
+		console.log("Creating project with data:", {
+			name: projectName,
+			description: "",
+			classroom: this.classroom_id === "" ? null : this.classroom_id,
+			application: this.application_id,
+			project: dataNum,
+			screenshot: imgNum,
+		});
 		this.request("POST", this.apiBasePath + "/projects/", onSuccess, onError, "createProject failed", false, {
 			name: projectName,
 			description: "",
-			classroom: this.classroom_id,
+			classroom: this.classroom_id === "" ? null : this.classroom_id,
 			application: this.application_id,
 			project: dataNum,
 			screenshot: imgNum,
@@ -350,29 +507,42 @@ Cloud.prototype.createProject = function (projectName, dataNum, imgNum, onSucces
 };
 
 Cloud.prototype.getProjectList = function (onSuccess, onError, withThumbnail) {
-	let path = `/projects/?owner=${this.user_id}&application_type=CSPRO`;
+	let path = `/projects/?owner=${this.user_id}&application_type=CSPRO&page_size=10`;
 
 	this.withCredentialsRequest("GET", path, onSuccess, onError, "Could not fetch projects");
 };
 
 Cloud.prototype.getThumbnail = function (url, onSuccess, onError) {
-	let texture = null;
-	console.log(url);
-	fetch(url)
-		.then((res) => {
-			if (res.ok) texture = url;
-			else texture = this.determineCloudDomain() + "/csdt/img/project_placeholder.png";
-			return texture;
-		})
-		.finally(() => {
-			onSuccess(texture);
-		})
-		.catch(() => {
-			onError();
-		});
+	let self = this;
+
+	// Use Image object WITHOUT crossOrigin to avoid CORS entirely
+	var img = new Image();
+
+	img.onload = function () {
+		// Image loaded successfully
+		onSuccess(url);
+	};
+
+	img.onerror = function () {
+		// Image failed to load, use placeholder
+		onSuccess(self.determineCloudDomain() + "/assets/img/project_placeholder.png");
+	};
+
+	// DON'T set crossOrigin - this avoids CORS entirely
+	img.src = url;
 };
 
 Cloud.prototype.getProject = function (project, delta, onSuccess, onError) {
-	console.log(project.project_url);
+	// console.log(project.project_url);
 	this.request("GET", project.project_url, onSuccess, onError, "Could not fetch project " + project.name, true);
+};
+
+Cloud.prototype.getCurrentUser = function (onSuccess, onError) {
+	this.request(
+		"GET",
+		"/user", // Fixed: use correct endpoint that matches Django URL config
+		onSuccess,
+		onError,
+		"Could not retrieve current user"
+	);
 };

@@ -319,7 +319,7 @@
 
 													_context3.next = 3;
 													return regeneratorRuntime.awrap(
-														tf.loadGraphModel("/csnap/features/nst/lib/saved_model_style_js/model.json")
+														tf.loadGraphModel("./libraries/ai/saved_model_style_js/model.json")
 													);
 
 												case 3:
@@ -358,7 +358,7 @@
 
 													_context4.next = 3;
 													return regeneratorRuntime.awrap(
-														tf.loadGraphModel("/csnap/features/nst/lib/saved_model_style_inception_js/model.json")
+														tf.loadGraphModel("./libraries/ai/saved_model_style_inception_js/model.json")
 													);
 
 												case 3:
@@ -397,7 +397,7 @@
 
 													_context5.next = 3;
 													return regeneratorRuntime.awrap(
-														tf.loadGraphModel("/csnap/features/nst/lib/saved_model_transformer_js/model.json")
+														tf.loadGraphModel("./libraries/ai/saved_model_transformer_js/model.json")
 													);
 
 												case 3:
@@ -436,7 +436,7 @@
 
 													_context6.next = 3;
 													return regeneratorRuntime.awrap(
-														tf.loadGraphModel("/csnap/features/nst/lib/saved_model_transformer_separable_js/model.json")
+														tf.loadGraphModel("./libraries/ai/saved_model_transformer_separable_js/model.json")
 													);
 
 												case 3:
@@ -7091,7 +7091,7 @@
 				 * SavedModel GraphDef and allows inference exeuction.
 				 *
 				 * A `tf.GraphModel` can only be created by loading from a model converted from
-				 * a [TensorFlow SavedModel](https://www.tensorflow.org/guide/saved_model) using
+				 * a [TensorFlow SavedModel](https://www.tensorflow.org/guide/./libraries/ai/saved_model) using
 				 * the command line converter tool and loaded via `tf.loadGraphModel`.
 				 */
 				/** @doc {heading: 'Models', subheading: 'Classes'} */

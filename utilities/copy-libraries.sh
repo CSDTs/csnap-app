@@ -16,6 +16,16 @@ echo "Source: $SOURCE_DIR"
 echo "Destination: $DEST_DIR"
 echo "Excluding: LIBRARIES.json"
 echo
+echo "WARNING: This will override any \"AnanseBot\" changes found in beetle.xml and init.js."
+while true; do
+    read -p "Are you sure you wish to proceed? (y/n): " yn
+    case $yn in
+        [Yy] ) break;;
+        [Nn] ) echo "Aborted."; exit 1;;
+        * ) echo "Please answer y or n.";;
+    esac
+done
+echo
 
 # Check if source directory exists
 if [ ! -d "$SOURCE_DIR" ]; then
