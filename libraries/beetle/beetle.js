@@ -44,6 +44,189 @@ if (!SpriteMorph.prototype.originalSetColorDimension) {
 	};
 }
 
+// BeetleStageMorph //////////////////////////////////////////////////////
+
+// BeetleStageMorph inherits from StageMorph and integrates 3D rendering directly into the stage
+BeetleStageMorph.prototype = new StageMorph();
+BeetleStageMorph.prototype.constructor = BeetleStageMorph;
+BeetleStageMorph.uber = StageMorph.prototype;
+
+function BeetleStageMorph(globals) {
+	this.init(globals);
+}
+
+BeetleStageMorph.prototype.init = function (globals) {
+	// Initialize as a regular stage first
+	BeetleStageMorph.uber.init.call(this, globals);
+
+	// Initialize 3D components
+	this.beetleController = new BeetleController(this);
+	this.init3DView();
+
+	// Override stage rendering to show 3D content
+	this.originalRender = this.render;
+	this.render = this.render3D;
+
+	// Override step function to ensure 3D rendering continues
+	this.originalStep = this.step;
+	this.step = this.step3D;
+
+	// Hide resize handles to prevent layout issues
+	this.hideResizeHandles();
+};
+
+BeetleStageMorph.prototype.init3DView = function () {
+	// Create the 3D rendering view
+	this.renderView = new Morph();
+	this.renderView.setExtent(this.dimensions);
+
+	// Set up the render function to draw the 3D canvas
+	var myself = this;
+	this.renderView.render = function (ctx) {
+		if (myself.beetleController && myself.beetleController.glCanvas) {
+			ctx.drawImage(
+				myself.beetleController.glCanvas,
+				0,
+				0,
+				myself.beetleController.renderWidth,
+				myself.beetleController.renderHeight
+			);
+		}
+	};
+
+	// Add step function for continuous rendering
+	this.renderView.step = function () {
+		if (myself.beetleController) {
+			myself.beetleController.render();
+		}
+	};
+
+	// Make the render view handle mouse events for 3D interaction (matching dialog implementation)
+	this.renderView.mouseScroll = function (y, x) {
+		if (myself.beetleController && myself.beetleController.camera) {
+			myself.beetleController.camera.zoomBy(y);
+		}
+	};
+
+	this.renderView.mouseDownLeft = function (pos) {
+		if (myself.beetleController && myself.beetleController.camera) {
+			myself.beetleController.camera.clickOrigin = pos;
+		}
+	};
+
+	this.renderView.mouseDownRight = this.renderView.mouseDownLeft;
+
+	this.renderView.mouseMove = function (pos, button) {
+		if (myself.beetleController && myself.beetleController.camera) {
+			if (button === "left") {
+				myself.beetleController.camera.rotateBy(pos);
+			} else if (button === "right") {
+				myself.beetleController.camera.panBy(pos);
+			}
+		}
+	};
+
+	this.add(this.renderView);
+};
+
+BeetleStageMorph.prototype.render3D = function (ctx) {
+	// Call the original stage render first
+	this.originalRender.call(this, ctx);
+
+	// Then render the 3D content on top
+	if (this.renderView) {
+		this.renderView.render(ctx);
+	}
+};
+
+BeetleStageMorph.prototype.step3D = function () {
+	// Call the original step function
+	if (this.originalStep) {
+		this.originalStep.call(this);
+	}
+
+	// Ensure 3D rendering continues
+	if (this.beetleController) {
+		this.beetleController.render();
+	}
+};
+
+// Override stage resize to update 3D rendering
+BeetleStageMorph.prototype.setExtent = function (extent) {
+	BeetleStageMorph.uber.setExtent.call(this, extent);
+
+	if (this.beetleController) {
+		this.beetleController.renderWidth = extent.x;
+		this.beetleController.renderHeight = extent.y;
+		this.beetleController.glCanvas.width = extent.x;
+		this.beetleController.glCanvas.height = extent.y;
+		this.beetleController.engine.setSize(extent.x, extent.y);
+
+		if (this.renderView) {
+			this.renderView.setExtent(extent);
+		}
+
+		this.beetleController.changed();
+	}
+};
+
+// Override stage dimensions setter to update 3D rendering
+BeetleStageMorph.prototype.setDimensions = function (dimensions) {
+	BeetleStageMorph.uber.setDimensions.call(this, dimensions);
+
+	if (this.beetleController) {
+		this.beetleController.renderWidth = dimensions.x;
+		this.beetleController.renderHeight = dimensions.y;
+		this.beetleController.glCanvas.width = dimensions.x;
+		this.beetleController.glCanvas.height = dimensions.y;
+		this.beetleController.engine.setSize(dimensions.x, dimensions.y);
+
+		if (this.renderView) {
+			this.renderView.setExtent(dimensions);
+		}
+
+		this.beetleController.changed();
+	}
+};
+
+BeetleStageMorph.prototype.hideResizeHandles = function () {
+	// Hide all resize handles to prevent manual resizing
+	if (this.handles) {
+		this.handles.forEach(function (handle) {
+			handle.hide();
+		});
+	}
+
+	// Also hide any corner handles
+	if (this.cornerHandles) {
+		this.cornerHandles.forEach(function (handle) {
+			handle.hide();
+		});
+	}
+
+	// Hide edge handles
+	if (this.edgeHandles) {
+		this.edgeHandles.forEach(function (handle) {
+			handle.hide();
+		});
+	}
+
+	// Override the showHandles method to prevent handles from appearing
+	this.originalShowHandles = this.showHandles;
+	this.showHandles = function () {
+		// Do nothing - keep handles hidden
+	};
+
+	// Override the hideHandles method to ensure they stay hidden
+	this.originalHideHandles = this.hideHandles;
+	this.hideHandles = function () {
+		// Always keep handles hidden
+		if (this.originalHideHandles) {
+			this.originalHideHandles.call(this);
+		}
+	};
+};
+
 // BeetleController //////////////////////////////////////////////////////
 
 function BeetleController(stage) {
@@ -69,8 +252,8 @@ BeetleController.prototype.init = function (stage) {
 	this.wireframeEnabled = false;
 
 	this.shouldRerender = false;
-	this.renderWidth = 480;
-	this.renderHeight = 360;
+	this.renderWidth = stage.dimensions ? stage.dimensions.x : 480;
+	this.renderHeight = stage.dimensions ? stage.dimensions.y : 360;
 
 	this.fullScreenMode = false;
 
@@ -86,7 +269,11 @@ BeetleController.prototype.init = function (stage) {
 	this.beetle = new Beetle(this);
 
 	this.initAxes();
-	this.initDialog();
+
+	// Only init dialog if not using BeetleStageMorph
+	if (!(stage instanceof BeetleStageMorph)) {
+		this.initDialog();
+	}
 };
 
 BeetleController.prototype.open = function () {
@@ -374,8 +561,12 @@ BeetleController.prototype.render = function () {
 		this.scene.render();
 		if (this.fullScreenMode) {
 			world.changed();
-		} else {
+		} else if (this.dialog) {
+			// Dialog mode
 			this.dialog.changed();
+		} else if (this.stage instanceof BeetleStageMorph) {
+			// Integrated stage mode
+			this.stage.changed();
 		}
 		if (this.firstTimeOpenCount > 5) {
 			this.shouldRerender = false;
@@ -1773,9 +1964,169 @@ SpriteMorph.prototype.renderTorusKnot = function (radius, tube, p, q, heightScal
 
 // Buttons
 
+function replaceStageWith3D() {
+	var ide = this.parentThatIsA(IDE_Morph);
+	if (ide && ide.stage && !(ide.stage instanceof BeetleStageMorph)) {
+		// Replace the current stage with BeetleStageMorph
+		var oldStage = ide.stage;
+		var newStage = new BeetleStageMorph(oldStage.variables.globals);
+
+		// Copy important properties from old stage
+		newStage.name = oldStage.name;
+		newStage.dimensions = oldStage.dimensions;
+		newStage.color = oldStage.color;
+		newStage.volume = oldStage.volume;
+		newStage.pan = oldStage.pan;
+		newStage.tempo = oldStage.tempo;
+		newStage.isThreadSafe = oldStage.isThreadSafe;
+		newStage.enablePenLogging = oldStage.enablePenLogging;
+		newStage.enableCodeMapping = oldStage.enableCodeMapping;
+		newStage.enableInheritance = oldStage.enableInheritance;
+		newStage.enableSublistIDs = oldStage.enableSublistIDs;
+
+		// Copy sprites
+		oldStage.children.forEach(function (sprite) {
+			if (sprite instanceof SpriteMorph) {
+				oldStage.removeChild(sprite);
+				newStage.addChild(sprite);
+			}
+		});
+
+		// Replace the stage in the IDE
+		ide.stage = newStage;
+		ide.removeChild(oldStage);
+		ide.add(newStage);
+
+		// Update corral
+		if (ide.corral && ide.corral.stageIcon) {
+			ide.corral.stageIcon.target = newStage;
+		}
+
+		// Update stage handle to follow the new stage
+		if (ide.stageHandle) {
+			ide.stageHandle.target = newStage;
+		}
+
+		// Refresh layout
+		ide.fixLayout();
+
+		// Start rendering
+		newStage.beetleController.changed();
+	}
+}
+
 SnapExtensions.buttons.palette.push({
 	category: "3D Beetle",
-	label: "Open 3D Window",
+	label: "Replace Stage with 3D",
+	hideable: false,
+	action: function () {
+		var ide = this.parentThatIsA(IDE_Morph);
+		if (ide && ide.stage && !(ide.stage instanceof BeetleStageMorph)) {
+			// Replace the current stage with BeetleStageMorph
+			var oldStage = ide.stage;
+			var newStage = new BeetleStageMorph(oldStage.variables.globals);
+
+			// Copy important properties from old stage
+			newStage.name = oldStage.name;
+			newStage.dimensions = oldStage.dimensions;
+			newStage.color = oldStage.color;
+			newStage.volume = oldStage.volume;
+			newStage.pan = oldStage.pan;
+			newStage.tempo = oldStage.tempo;
+			newStage.isThreadSafe = oldStage.isThreadSafe;
+			newStage.enablePenLogging = oldStage.enablePenLogging;
+			newStage.enableCodeMapping = oldStage.enableCodeMapping;
+			newStage.enableInheritance = oldStage.enableInheritance;
+			newStage.enableSublistIDs = oldStage.enableSublistIDs;
+
+			// Copy sprites
+			oldStage.children.forEach(function (sprite) {
+				if (sprite instanceof SpriteMorph) {
+					oldStage.removeChild(sprite);
+					newStage.addChild(sprite);
+				}
+			});
+
+			// Replace the stage in the IDE
+			ide.stage = newStage;
+			ide.removeChild(oldStage);
+			ide.add(newStage);
+
+			// Update corral
+			if (ide.corral && ide.corral.stageIcon) {
+				ide.corral.stageIcon.target = newStage;
+			}
+
+			// Update stage handle to follow the new stage
+			if (ide.stageHandle) {
+				ide.stageHandle.target = newStage;
+			}
+
+			// Refresh layout
+			ide.fixLayout();
+
+			// Start rendering
+			newStage.beetleController.changed();
+		}
+	},
+});
+
+SnapExtensions.buttons.palette.push({
+	category: "3D Beetle",
+	label: "Revert to Regular Stage",
+	hideable: false,
+	action: function () {
+		var ide = this.parentThatIsA(IDE_Morph);
+		if (ide && ide.stage && ide.stage instanceof BeetleStageMorph) {
+			// Replace BeetleStageMorph with regular StageMorph
+			var oldStage = ide.stage;
+			var newStage = new StageMorph(oldStage.variables.globals);
+
+			// Copy important properties from old stage
+			newStage.name = oldStage.name;
+			newStage.dimensions = oldStage.dimensions;
+			newStage.color = oldStage.color;
+			newStage.volume = oldStage.volume;
+			newStage.pan = oldStage.pan;
+			newStage.tempo = oldStage.tempo;
+			newStage.isThreadSafe = oldStage.isThreadSafe;
+			newStage.enablePenLogging = oldStage.enablePenLogging;
+			newStage.enableCodeMapping = oldStage.enableCodeMapping;
+			newStage.enableInheritance = oldStage.enableInheritance;
+			newStage.enableSublistIDs = oldStage.enableSublistIDs;
+
+			// Copy sprites
+			oldStage.children.forEach(function (sprite) {
+				if (sprite instanceof SpriteMorph) {
+					oldStage.removeChild(sprite);
+					newStage.addChild(sprite);
+				}
+			});
+
+			// Replace the stage in the IDE
+			ide.stage = newStage;
+			ide.removeChild(oldStage);
+			ide.add(newStage);
+
+			// Update corral
+			if (ide.corral && ide.corral.stageIcon) {
+				ide.corral.stageIcon.target = newStage;
+			}
+
+			// Update stage handle to follow the new stage
+			if (ide.stageHandle) {
+				ide.stageHandle.target = newStage;
+			}
+
+			// Refresh layout
+			ide.fixLayout();
+		}
+	},
+});
+
+SnapExtensions.buttons.palette.push({
+	category: "3D Beetle",
+	label: "Open 3D Window (Dialog)",
 	hideable: false,
 	action: function () {
 		var stage = this.parentThatIsA(StageMorph);
@@ -1796,12 +2147,14 @@ SnapExtensions.buttons.palette.push({
 	world.children[0].flushBlocksCache();
 	world.children[0].refreshPalette();
 
-	// Init controller
-	if (!stage.beetleController) {
-		stage.beetleController = new BeetleController(stage);
+	// Force the 3D Beetle category to be loaded into cache immediately
+	// This ensures the blocks are available regardless of timing
+	if (ide && ide.stage) {
+		ide.stage.getPrimitiveTemplates("3D Beetle");
 	}
 
-	stage.beetleController.open();
+	// Note: Stage replacement is now handled in init.js after all scripts are loaded
+	// This ensures proper loading order and block registration
 })();
 
 // Primitives
