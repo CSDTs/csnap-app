@@ -310,6 +310,7 @@ SpriteMorph.prototype.categoryText = function (category) {
 };
 
 SpriteMorph.prototype.originalFreshPalette = SpriteMorph.prototype.freshPalette;
+StageMorph.prototype.originalFreshPalette = StageMorph.prototype.freshPalette;
 SpriteMorph.prototype.freshPalette = function (category) {
 	// If we're in tutorial mode and using unified palette, show only specific blocks
 	if (StageMorph.prototype.tutorial && category === "unified") {

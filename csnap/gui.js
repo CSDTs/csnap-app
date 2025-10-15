@@ -765,6 +765,64 @@ IDE_Morph.prototype.autoLoadExtensions = function () {
 	});
 };
 
+// Standardize library paths before export to ensure consistent relative paths
+IDE_Morph.prototype.standardizeLibraryPaths = function () {
+	Object.keys(this.globalVariables.vars).forEach((vName) => {
+		if (vName.startsWith("__module__")) {
+			var val = this.globalVariables.getVar(vName);
+			if (isString(val)) {
+				// Convert full paths back to relative paths for export
+				var relativePath = val;
+				if (val.startsWith(this.asset_path)) {
+					relativePath = val.substring(this.asset_path.length);
+				}
+				// Remove any leading "./" to ensure consistent format
+				if (relativePath.startsWith("./")) {
+					relativePath = relativePath.substring(2);
+				}
+				this.globalVariables.setVar(vName, relativePath);
+			}
+		}
+	});
+};
+
+// Override export functions to standardize library paths before export
+IDE_Morph.prototype.originalExportProject = IDE_Morph.prototype.exportProject;
+IDE_Morph.prototype.exportProject = function (name) {
+	this.standardizeLibraryPaths();
+	return this.originalExportProject.call(this, name);
+};
+
+IDE_Morph.prototype.originalExportProjectMedia = IDE_Morph.prototype.exportProjectMedia;
+IDE_Morph.prototype.exportProjectMedia = function (name) {
+	this.standardizeLibraryPaths();
+	return this.originalExportProjectMedia.call(this, name);
+};
+
+IDE_Morph.prototype.originalExportProjectNoMedia = IDE_Morph.prototype.exportProjectNoMedia;
+IDE_Morph.prototype.exportProjectNoMedia = function (name) {
+	this.standardizeLibraryPaths();
+	return this.originalExportProjectNoMedia.call(this, name);
+};
+
+IDE_Morph.prototype.originalExportProjectAsCloudData = IDE_Morph.prototype.exportProjectAsCloudData;
+IDE_Morph.prototype.exportProjectAsCloudData = function (name) {
+	this.standardizeLibraryPaths();
+	return this.originalExportProjectAsCloudData.call(this, name);
+};
+
+IDE_Morph.prototype.originalSaveProjectToCloud = IDE_Morph.prototype.saveProjectToCloud;
+IDE_Morph.prototype.saveProjectToCloud = function (name) {
+	this.standardizeLibraryPaths();
+	return this.originalSaveProjectToCloud.call(this, name);
+};
+
+IDE_Morph.prototype.originalSaveAsProjectToCloud = IDE_Morph.prototype.saveAsProjectToCloud;
+IDE_Morph.prototype.saveAsProjectToCloud = function (name) {
+	this.standardizeLibraryPaths();
+	return this.originalSaveAsProjectToCloud.call(this, name);
+};
+
 IDE_Morph.prototype.createCorral = function (keepSceneAlbum) {
 	// assumes the corral bar has already been created
 	var frame,
@@ -1512,7 +1570,7 @@ IDE_Morph.prototype.createControlBar = function () {
 		scene = myself.scenes.at(1) !== myself.scene ? " (" + myself.scene.name + ")" : "";
 		name = myself.getProjectName() || localize("untitled");
 		if (!myself.config.preserveTitle) {
-			document.title = "Snap! " + (myself.getProjectName() ? name : SnapVersion);
+			document.title = "CSnap! " + (myself.getProjectName() ? name : SnapVersion);
 		}
 		txt = new StringMorph(
 			prefix + name + scene + suffix,

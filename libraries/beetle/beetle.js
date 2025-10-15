@@ -1548,7 +1548,7 @@ Beetle.prototype.move = function (axis, steps) {
 
 	var scaledSteps = Number(steps) * this.movementScale,
 		vector = new BABYLON.Vector3(
-			axis === "x" ? scaledSteps * -1 : 0,
+			axis === "x" ? scaledSteps : 0,
 			axis === "y" ? scaledSteps : 0,
 			axis === "z" ? scaledSteps : 0
 		);
@@ -1677,29 +1677,47 @@ Beetle.prototype.setOffset = function (offset) {
 // Ananse Bot
 Beetle.prototype.renderArc = function (width, height) {
 	const ARC_SEGMENTS = 60;
-	var xRadius = width / 2,
-		yRadius = height;
+	var xRadius = height / 2,
+		yRadius = width;
 
 	// Get beetle's current position and rotation
 	var beetlePos = this.body.position;
 	var beetleRotationMatrix = this.body.computeWorldMatrix(true);
 
+	// Debug: Log the beetle's internal position
+	console.log("Beetle internal position:", beetlePos);
+
 	// Get thickness from shape scale
 	var thickness = Math.max(this.shapeScale.x, this.shapeScale.y);
 	if (thickness < 0.1) thickness = 0.1; // Minimum thickness
 
-	// Create the arc path points
+	// Create the arc path points directly in world coordinates
 	var arcPoints = [];
+
+	// Use the beetle's actual internal position (no conversion needed)
+	var arcX = beetlePos.x;
+	var arcY = beetlePos.y;
+	var arcZ = beetlePos.z;
+
 	for (var theta = 0; theta <= Math.PI; theta += Math.PI / ARC_SEGMENTS) {
 		var y = xRadius * Math.cos(theta);
 		var z = yRadius * Math.sin(theta);
 
-		// Create local point
+		// Create local point relative to beetle
 		var localPoint = new BABYLON.Vector3(0, y, z);
 
-		// Transform by beetle's rotation and position
-		var worldPoint = BABYLON.Vector3.TransformCoordinates(localPoint, beetleRotationMatrix);
-		worldPoint = worldPoint.add(beetlePos);
+		// Extract only the rotation part of the matrix (3x3 upper-left)
+		var rotationMatrix = beetleRotationMatrix.clone();
+		rotationMatrix.m[12] = 0; // Remove translation X
+		rotationMatrix.m[13] = 0; // Remove translation Y
+		rotationMatrix.m[14] = 0; // Remove translation Z
+		rotationMatrix.m[15] = 1; // Keep homogeneous coordinate
+
+		// Transform by beetle's rotation only
+		var rotatedPoint = BABYLON.Vector3.TransformCoordinates(localPoint, rotationMatrix);
+
+		// Add beetle's position
+		var worldPoint = rotatedPoint.add(beetlePos);
 
 		arcPoints.push(worldPoint);
 	}
@@ -1748,12 +1766,21 @@ Beetle.prototype.renderTorus = function (width, length) {
 		var y = xRadius * Math.cos(theta);
 		var z = yRadius * Math.sin(theta);
 
-		// Create local point
+		// Create local point relative to beetle
 		var localPoint = new BABYLON.Vector3(0, y, z);
 
-		// Transform by beetle's rotation and position
-		var worldPoint = BABYLON.Vector3.TransformCoordinates(localPoint, beetleRotationMatrix);
-		worldPoint = worldPoint.add(beetlePos);
+		// Extract only the rotation part of the matrix (3x3 upper-left)
+		var rotationMatrix = beetleRotationMatrix.clone();
+		rotationMatrix.m[12] = 0; // Remove translation X
+		rotationMatrix.m[13] = 0; // Remove translation Y
+		rotationMatrix.m[14] = 0; // Remove translation Z
+		rotationMatrix.m[15] = 1; // Keep homogeneous coordinate
+
+		// Transform by beetle's rotation only
+		var rotatedPoint = BABYLON.Vector3.TransformCoordinates(localPoint, rotationMatrix);
+
+		// Add beetle's position
+		var worldPoint = rotatedPoint.add(beetlePos);
 
 		torusPoints.push(worldPoint);
 	}
