@@ -22,5 +22,7 @@ loadSrc("babylon.js")
 	.then(() => loadSrc("babylon.gridMaterial.min.js"))
 	.then(() => loadSrc("babylonjs.serializers.min.js"))
 	.then(() => loadSrc("earcut.min.js"))
+	.then(() => console.log("Loading Beetle library"))
 	.then(() => loadSrc("beetle.js"));
+
 // .then(() => loadSrc("anansebot.js"));
