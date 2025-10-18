@@ -130,7 +130,14 @@ BeetleController.prototype.initScene = function () {
 };
 
 BeetleController.prototype.initCamera = function () {
-	this.camera = new BABYLON.ArcRotateCamera("beetleCam", 0, 0, 10, new BABYLON.Vector3(0, 5, -10), this.scene);
+	this.camera = new BABYLON.ArcRotateCamera(
+		"beetleCam",
+		(315 * Math.PI) / 180,
+		Math.PI / 3,
+		10,
+		BABYLON.Vector3.Zero(),
+		this.scene
+	);
 	this.camera.controller = this;
 	this.camera.lowerRadiusLimit = 1.5;
 	this.camera.fpvEnabled = false;
@@ -148,8 +155,8 @@ BABYLON.ArcRotateCamera.prototype.reset = function () {
 	} else {
 		this.radius = 10;
 		this.setTarget(BABYLON.Vector3.Zero());
-		this.setPosition(new BABYLON.Vector3(0, 5, -10));
-		this.alpha = (Math.PI * 2) / 3;
+		this.alpha = (315 * Math.PI) / 180;
+		this.beta = Math.PI / 3;
 		this.framing = false;
 		if (this.framingBehavior) {
 			this.framingBehavior.detach(this);
@@ -311,9 +318,9 @@ BeetleController.prototype.initAxes = function () {
 			new BABYLON.SpriteManager("xManager", baseUrl + axis + ".png", 3, { width: 12, height: 16 })
 		);
 		this.axisLabels[axis].position = BABYLON.Vector3.FromArray([
-			axis === "x" ? -1.5 : 0,
-			axis === "y" ? 1.5 : 0,
+			axis === "x" ? 1.5 : 0,
 			axis === "z" ? 1.5 : 0,
+			axis === "y" ? 1.5 : 0,
 		]);
 
 		// Lines, both for origin and Beetle
@@ -323,7 +330,7 @@ BeetleController.prototype.initAxes = function () {
 				{
 					points: [
 						new BABYLON.Vector3.Zero(),
-						new BABYLON.Vector3(axis === "x" ? -1 : 0, axis === "y" ? 1 : 0, axis === "z" ? 1 : 0),
+						new BABYLON.Vector3(axis === "x" ? 1 : 0, axis === "z" ? 1 : 0, axis === "y" ? 1 : 0),
 					],
 					useVertexAlpha: false,
 				},
@@ -331,9 +338,9 @@ BeetleController.prototype.initAxes = function () {
 			);
 
 			owner.axisLines[axis].color = new BABYLON.Color3(
-				axis === "y" ? 1 : 0, // R
-				axis === "z" ? 1 : 0, // G
-				axis === "x" ? 1 : 0 // B
+				axis === "y" ? 1 : 0, // R (Z is now red, was Y)
+				axis === "z" ? 1 : 0, // G (Y is now green, was Z)
+				axis === "x" ? 1 : 0 // B (X stays blue)
 			);
 
 			if (owner === this.beetle) {
@@ -353,9 +360,9 @@ BeetleController.prototype.initAxes = function () {
 
 			label.size = 0.02 * factor;
 			label.position = BABYLON.Vector3.FromArray([
-				axis === "x" ? -0.15 * factor : 0,
-				axis === "y" ? 0.15 * factor : 0,
+				axis === "x" ? 0.15 * factor : 0,
 				axis === "z" ? 0.15 * factor : 0,
+				axis === "y" ? 0.15 * factor : 0,
 			]);
 
 			[this.beetle, this].forEach((owner) => {
@@ -1091,7 +1098,7 @@ Beetle.prototype.newExtrusionShape = function (selector) {
 	if (selector instanceof List) {
 		selector.asArray().forEach((p) => {
 			if (p instanceof List) {
-				path.push(new BABYLON.Vector3(Number(p.at(1)) * -1, 0, Number(p.at(2))));
+				path.push(new BABYLON.Vector3(Number(p.at(1)), Number(p.at(2)), 0));
 			}
 		});
 	} else {
@@ -1102,22 +1109,22 @@ Beetle.prototype.newExtrusionShape = function (selector) {
 			case "triangle":
 				path.push(new BABYLON.Vector3(-0.5, 0, 0));
 				path.push(new BABYLON.Vector3(0.5, 0, 0));
-				path.push(new BABYLON.Vector3(0, 0, Math.sqrt(2) / 2));
+				path.push(new BABYLON.Vector3(0, Math.sqrt(2) / 2, 0));
 				path.push(new BABYLON.Vector3(-0.5, 0, 0));
 				break;
 			case "square":
-				path.push(new BABYLON.Vector3(-0.5, 0, 0.5));
-				path.push(new BABYLON.Vector3(-0.5, 0, -0.5));
-				path.push(new BABYLON.Vector3(0.5, 0, -0.5));
-				path.push(new BABYLON.Vector3(0.5, 0, 0.5));
-				path.push(new BABYLON.Vector3(-0.5, 0, 0.5));
+				path.push(new BABYLON.Vector3(-0.5, 0.5, 0));
+				path.push(new BABYLON.Vector3(-0.5, -0.5, 0));
+				path.push(new BABYLON.Vector3(0.5, -0.5, 0));
+				path.push(new BABYLON.Vector3(0.5, 0.5, 0));
+				path.push(new BABYLON.Vector3(-0.5, 0.5, 0));
 				break;
 			default:
 			case "circle":
 				var radius = 0.5,
 					theta;
 				for (theta = 0; theta < 2 * Math.PI; theta += Math.PI / 16) {
-					path.push(new BABYLON.Vector3(radius * Math.cos(theta), 0, radius * Math.sin(theta)));
+					path.push(new BABYLON.Vector3(radius * Math.cos(theta), radius * Math.sin(theta), 0));
 				}
 				path.push(path[0]);
 				break;
@@ -1125,12 +1132,12 @@ Beetle.prototype.newExtrusionShape = function (selector) {
 				var radius = 0.5,
 					theta;
 				for (theta = (Math.PI * 3) / 2; theta < (Math.PI * 5) / 2 + Math.PI / 16; theta += Math.PI / 16) {
-					path.push(new BABYLON.Vector3(radius * Math.cos(theta), 0, radius * Math.sin(theta)));
+					path.push(new BABYLON.Vector3(radius * Math.cos(theta), radius * Math.sin(theta), 0));
 				}
 				break;
 			case "line":
-				path.push(new BABYLON.Vector3(0, 0, -0.5));
-				path.push(new BABYLON.Vector3(0, 0, 0.5));
+				path.push(new BABYLON.Vector3(0, -0.5, 0));
+				path.push(new BABYLON.Vector3(0, 0.5, 0));
 				break;
 			case "sprite positions":
 				path = this.loggedSpritePositions;
@@ -1142,7 +1149,7 @@ Beetle.prototype.newExtrusionShape = function (selector) {
 };
 
 Beetle.prototype.logSpritePosition = function (pos) {
-	this.loggedSpritePositions.push(new BABYLON.Vector3(pos[0] * -1, 0, pos[1]));
+	this.loggedSpritePositions.push(new BABYLON.Vector3(pos[0], pos[1], 0));
 	this.updateExtrusionShapeOutline();
 	if (this.extruding) {
 		this.stopExtruding();
@@ -1161,7 +1168,7 @@ Beetle.prototype.setLoggingSpritePosition = function (doIt, currentPos) {
 Beetle.prototype.scaledExtrusionShape = function () {
 	return this.extrusionShape.map(
 		(p) =>
-			new BABYLON.Vector3(p.x * this.shapeScale.x + this.shapeOffset.x, 0, p.z * this.shapeScale.y + this.shapeOffset.y)
+			new BABYLON.Vector3(p.x * this.shapeScale.x + this.shapeOffset.x, p.z * this.shapeScale.y + this.shapeOffset.y, 0)
 	);
 };
 
@@ -1358,8 +1365,8 @@ Beetle.prototype.move = function (axis, steps) {
 	var scaledSteps = Number(steps) * this.movementScale,
 		vector = new BABYLON.Vector3(
 			axis === "x" ? scaledSteps : 0,
-			axis === "y" ? scaledSteps : 0,
-			axis === "z" ? scaledSteps : 0
+			axis === "z" ? scaledSteps : 0,
+			axis === "y" ? scaledSteps : 0
 		);
 	this.body.locallyTranslate(vector);
 	this.controller.changed();
@@ -1374,13 +1381,13 @@ Beetle.prototype.goto = function (x, y, z) {
 	}
 
 	if (x !== "") {
-		this.body.position.x = Number(x) * -1;
+		this.body.position.x = Number(x);
 	}
 	if (y !== "") {
-		this.body.position.y = Number(y);
+		this.body.position.z = Number(y);
 	}
 	if (z !== "") {
-		this.body.position.z = Number(z);
+		this.body.position.y = Number(z);
 	}
 	this.controller.changed();
 	if (this.extruding) {
@@ -1392,7 +1399,7 @@ Beetle.prototype.getPosition = function () {
 	if (!this.isReady()) {
 		return new List([0, 0, 0]);
 	}
-	return new List([this.body.position.x * -1, this.body.position.y, this.body.position.z]);
+	return new List([this.body.position.x, this.body.position.z, this.body.position.y]);
 };
 
 Beetle.prototype.setRotations = function (x, y, z) {
@@ -1411,14 +1418,14 @@ Beetle.prototype.setRotations = function (x, y, z) {
 		this.body.rotation.x = oldRotation.x;
 	}
 	if (y !== "") {
-		this.body.rotation.y = radians(Number(y) * -1);
-	} else if (oldRotation) {
-		this.body.rotation.y = oldRotation.y;
-	}
-	if (z !== "") {
-		this.body.rotation.z = radians(Number(z) * -1);
+		this.body.rotation.z = radians(Number(y) * -1);
 	} else if (oldRotation) {
 		this.body.rotation.z = oldRotation.z;
+	}
+	if (z !== "") {
+		this.body.rotation.y = radians(Number(z) * -1);
+	} else if (oldRotation) {
+		this.body.rotation.y = oldRotation.y;
 	}
 	this.body.rotationQuaternion = this.body.rotation.toQuaternion();
 	this.controller.changed();
@@ -1431,7 +1438,7 @@ Beetle.prototype.getRotation = function () {
 
 	if (this.body.rotationQuaternion) {
 		var rotation = this.body.rotationQuaternion.toEulerAngles();
-		return new List([degrees(rotation.x * -1), degrees(rotation.y * -1), degrees(rotation.z * -1)]);
+		return new List([degrees(rotation.x * -1), degrees(rotation.z * -1), degrees(rotation.y * -1)]);
 	} else {
 		return new List([0, 0, 0]);
 	}
@@ -1446,10 +1453,10 @@ Beetle.prototype.rotate = function (x, y, z) {
 		this.body.rotate(BABYLON.Axis.X, radians(Number(x)) * -1);
 	}
 	if (y !== "") {
-		this.body.rotate(BABYLON.Axis.Y, radians(Number(y)) * -1);
+		this.body.rotate(BABYLON.Axis.Z, radians(Number(y)) * -1);
 	}
 	if (z !== "") {
-		this.body.rotate(BABYLON.Axis.Z, radians(Number(z)) * -1);
+		this.body.rotate(BABYLON.Axis.Y, radians(Number(z)) * -1);
 	}
 	this.controller.changed();
 };
@@ -1459,7 +1466,7 @@ Beetle.prototype.pointTo = function (x, y, z) {
 		return;
 	}
 
-	this.body.lookAt(new BABYLON.Vector3(Number(x) * -1, Number(y), Number(z)));
+	this.body.lookAt(new BABYLON.Vector3(Number(x), Number(z), Number(y)));
 	this.controller.changed();
 };
 
@@ -1478,7 +1485,7 @@ Beetle.prototype.setScale = function (scale, which) {
 };
 
 Beetle.prototype.setOffset = function (offset) {
-	this.shapeOffset.x = Number(offset[0]) * -1;
+	this.shapeOffset.x = Number(offset[0]);
 	this.shapeOffset.y = Number(offset[1]);
 	this.updateExtrusionShapeOutline();
 };
@@ -1512,8 +1519,8 @@ Beetle.prototype.renderArc = function (width, height) {
 		var y = xRadius * Math.cos(theta);
 		var z = yRadius * Math.sin(theta);
 
-		// Create local point relative to beetle
-		var localPoint = new BABYLON.Vector3(0, y, z);
+		// Create local point relative to beetle - swap Y and Z coordinates
+		var localPoint = new BABYLON.Vector3(0, z, y);
 
 		// Extract only the rotation part of the matrix (3x3 upper-left)
 		var rotationMatrix = beetleRotationMatrix.clone();
@@ -1575,8 +1582,8 @@ Beetle.prototype.renderTorus = function (width, length) {
 		var y = xRadius * Math.cos(theta);
 		var z = yRadius * Math.sin(theta);
 
-		// Create local point relative to beetle
-		var localPoint = new BABYLON.Vector3(0, y, z);
+		// Create local point relative to beetle - swap Y and Z coordinates
+		var localPoint = new BABYLON.Vector3(0, z, y);
 
 		// Extract only the rotation part of the matrix (3x3 upper-left)
 		var rotationMatrix = beetleRotationMatrix.clone();

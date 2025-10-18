@@ -277,23 +277,48 @@ Cloud.prototype.login = function (username, password, persist, onSuccess, onErro
 
 	this.getCSRFToken();
 
+	var loginUrl = this.determineCloudDomain() + "/accounts/login/";
+
+	// Check if we have a CSRF token, if not, fetch it first
+	if (typeof csrftoken === "undefined" || !csrftoken) {
+		// First, make a GET request to the login page to get a CSRF cookie
+		var getRequest = new XMLHttpRequest();
+		getRequest.open("GET", loginUrl, true);
+		getRequest.withCredentials = true;
+		getRequest.onreadystatechange = function () {
+			if (getRequest.readyState === 4) {
+				if (getRequest.status === 200) {
+					// Now we should have the CSRF cookie, try again
+					myself.getCSRFToken();
+					myself.login(username, password, persist, onSuccess, onError);
+				} else {
+					onError("Could not retrieve CSRF token");
+				}
+			}
+		};
+		getRequest.send();
+		return;
+	}
+
 	// Create form data instead of JSON
 	var formData = new FormData();
 	formData.append("login", username);
 	formData.append("password", password);
+	// Add CSRF token to form data (required by Django)
+	formData.append("csrfmiddlewaretoken", csrftoken);
 	if (persist) {
 		formData.append("remember", "on");
 	}
 
 	// Use XMLHttpRequest directly for form submission
 	var request = new XMLHttpRequest();
-	request.open("POST", this.determineCloudDomain() + "/accounts/login/", true);
+	request.open("POST", loginUrl, true);
 
 	// Don't set Content-Type for FormData - browser will set it automatically
 	// request.setRequestHeader("Content-Type", "application/json; charset=utf-8");
 
-	// Add CSRF token
-	if (typeof csrftoken !== "undefined") {
+	// Add CSRF token as header (for additional security)
+	if (typeof csrftoken !== "undefined" && csrftoken) {
 		request.setRequestHeader("X-CSRFToken", csrftoken);
 	}
 
@@ -311,6 +336,10 @@ Cloud.prototype.login = function (username, password, persist, onSuccess, onErro
 					// Success - now get user info
 					myself.checkCredentials(onSuccess, onError);
 				}
+			} else if (request.status === 403) {
+				// CSRF token might be stale, try to get a new one
+				myself.getCSRFToken();
+				onError("CSRF verification failed. Please try again.");
 			} else {
 				onError("Login failed with status: " + request.status);
 			}
