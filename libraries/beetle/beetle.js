@@ -1774,33 +1774,14 @@ Beetle.prototype.renderTorusKnot = function (radius, tube, p, q, heightScale) {
 	this.controller.changed();
 };
 
-SpriteMorph.prototype.renderSphere = function (radius) {
-	this.render3dShape(new THREE.SphereGeometry(radius, 32, 32));
-};
-
-SpriteMorph.prototype.renderBox = function (width, height, depth) {
-	this.render3dShape(new THREE.BoxGeometry(width, height, depth));
-};
-
-SpriteMorph.prototype.renderCylinder = function (top, bottom, height) {
-	const THREEJS_CYLINDER_RADIUS_SEGMENTS = 90;
-	this.render3dShape(new THREE.CylinderGeometry(top, bottom, height, THREEJS_CYLINDER_RADIUS_SEGMENTS));
-};
-
-SpriteMorph.prototype.renderTorusKnot = function (radius, tube, p, q, heightScale) {
-	const THREEJS_TORUS_KNOT_RADIAL_SEGMENTS = 24,
-		THREEJS_TORUS_KNOT_TUBULAR_SEGMENTS = 10;
-	this.render3dShape(
-		new THREE.TorusKnotGeometry(
-			radius,
-			tube,
-			THREEJS_TORUS_KNOT_RADIAL_SEGMENTS,
-			THREEJS_TORUS_KNOT_TUBULAR_SEGMENTS,
-			p,
-			q,
-			heightScale
-		)
-	);
+Beetle.prototype.translateBy3D = function (number, dimension) {
+	if (dimension === "width") {
+		this.move("y", number);
+	} else if (dimension === "height") {
+		this.move("z", number);
+	} else if (dimension === "depth") {
+		this.move("x", number);
+	}
 };
 
 // SnapExtensions API ////////////////////////////////////////////////////
@@ -2052,3 +2033,11 @@ SnapExtensions.primitives.set(
 		stage.beetleController.beetle.renderTorusKnot(radius, tube, p, q, heightScale);
 	}
 );
+
+SnapExtensions.primitives.set("ananse_translateBy3D(number, dimension)", function (number, dimension) {
+	var stage = this.parentThatIsA(StageMorph);
+	if (!stage.beetleController) {
+		return;
+	}
+	stage.beetleController.beetle.translateBy3D(number, dimension);
+});
