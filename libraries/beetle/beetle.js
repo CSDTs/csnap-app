@@ -332,7 +332,7 @@ BeetleController.prototype.initAxes = function () {
 				{
 					points: [
 						new BABYLON.Vector3.Zero(),
-						new BABYLON.Vector3(axis === "x" ? -1 : 0, axis === "z" ? 1 : 0, axis === "y" ? 1 : 0),
+						new BABYLON.Vector3(axis === "x" ? 1 : 0, axis === "z" ? 1 : 0, axis === "y" ? 1 : 0),
 					],
 					useVertexAlpha: false,
 				},
@@ -362,7 +362,7 @@ BeetleController.prototype.initAxes = function () {
 
 			label.size = 0.02 * factor;
 			label.position = BABYLON.Vector3.FromArray([
-				axis === "x" ? -0.15 * factor : 0,
+				axis === "x" ? 0.15 * factor : 0,
 				axis === "z" ? 0.15 * factor : 0,
 				axis === "y" ? 0.15 * factor : 0,
 			]);
@@ -1425,7 +1425,7 @@ Beetle.prototype.setRotations = function (x, y, z) {
 Beetle.prototype.getRotation = function () {
 	if (this.body.rotationQuaternion) {
 		var rotation = this.body.rotationQuaternion.toEulerAngles();
-		return new List([degrees(rotation.x * -1), degrees(rotation.z * -1), degrees(rotation.y * -1)]);
+		return new List([degrees(rotation.x), degrees(rotation.z), degrees(rotation.y * -1)]);
 	} else {
 		return new List([0, 0, 0]);
 	}
@@ -1433,10 +1433,10 @@ Beetle.prototype.getRotation = function () {
 
 Beetle.prototype.rotate = function (x, y, z) {
 	if (x !== "") {
-		this.body.rotate(BABYLON.Axis.X, radians(Number(x)) * -1);
+		this.body.rotate(BABYLON.Axis.X, radians(Number(x)) * 1);
 	}
 	if (y !== "") {
-		this.body.rotate(BABYLON.Axis.Z, radians(Number(y)) * -1);
+		this.body.rotate(BABYLON.Axis.Z, radians(Number(y)) * 1);
 	}
 	if (z !== "") {
 		this.body.rotate(BABYLON.Axis.Y, radians(Number(z)) * -1);
@@ -1472,8 +1472,8 @@ Beetle.prototype.setOffset = function (offset) {
 // Ananse Bot
 Beetle.prototype.renderArc = function (width, height) {
 	const ARC_SEGMENTS = 60;
-	var xRadius = height / 2,
-		yRadius = width;
+	var xRadius = width / 2,
+		yRadius = height;
 
 	// Get beetle's current position and rotation
 	var beetlePos = this.body.position;
