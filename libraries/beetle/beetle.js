@@ -950,6 +950,7 @@ Beetle.prototype.init = function (controller) {
 	this.shapeScale = new BABYLON.Vector2(1, 1);
 	this.shapeOffset = new BABYLON.Vector2.Zero();
 	this.movementScale = 1;
+	this.extrusionScale = new BABYLON.Vector3(1, 1, 1);
 
 	this.loadMeshes("beetle");
 	this.wings = null;
@@ -1175,7 +1176,11 @@ Beetle.prototype.setLoggingSpritePosition = function (doIt, currentPos) {
 Beetle.prototype.scaledExtrusionShape = function () {
 	return this.extrusionShape.map(
 		(p) =>
-			new BABYLON.Vector3(p.x * this.shapeScale.x + this.shapeOffset.x, 0, p.z * this.shapeScale.y + this.shapeOffset.y)
+			new BABYLON.Vector3(
+				(p.x * this.shapeScale.x + this.shapeOffset.x) * this.extrusionScale.x,
+				0,
+				(p.z * this.shapeScale.y + this.shapeOffset.y) * this.extrusionScale.z
+			)
 	);
 };
 
@@ -1469,6 +1474,18 @@ Beetle.prototype.setOffset = function (offset) {
 	this.updateExtrusionShapeOutline();
 };
 
+Beetle.prototype.scaleExtrusion = function (xScale, yScale, zScale) {
+	// Store the scaling factors for use in extrusion operations
+	this.extrusionScale = new BABYLON.Vector3(Number(xScale), Number(yScale), Number(zScale));
+
+	// Update the extrusion shape outline if currently extruding
+	if (this.extruding) {
+		this.updateExtrusionShapeOutline();
+	}
+
+	this.controller.changed();
+};
+
 // Ananse Bot
 Beetle.prototype.renderArc = function (width, height) {
 	const ARC_SEGMENTS = 60;
@@ -1482,8 +1499,9 @@ Beetle.prototype.renderArc = function (width, height) {
 	// Debug: Log the beetle's internal position
 	console.log("Beetle internal position:", beetlePos);
 
-	// Get thickness from shape scale
-	var thickness = Math.max(this.shapeScale.x, this.shapeScale.y);
+	// Get thickness from shape scale and extrusion scale
+	var thickness =
+		Math.max(this.shapeScale.x, this.shapeScale.y) * Math.max(this.extrusionScale.x, this.extrusionScale.z);
 	if (thickness < 0.1) thickness = 0.1; // Minimum thickness
 
 	// Create the arc path points directly in world coordinates
@@ -1495,11 +1513,12 @@ Beetle.prototype.renderArc = function (width, height) {
 	var arcZ = beetlePos.z;
 
 	for (var theta = 0; theta <= Math.PI; theta += Math.PI / ARC_SEGMENTS) {
-		var y = xRadius * Math.cos(theta);
-		var z = yRadius * Math.sin(theta);
+		var y = xRadius * Math.cos(theta) * this.extrusionScale.x;
+		var z = yRadius * Math.sin(theta) * this.extrusionScale.z;
 
 		// Create local point relative to beetle - swap Y and Z coordinates
-		var localPoint = new BABYLON.Vector3(0, z, y);
+		// Apply Y scaling to the Y component (depth/thickness)
+		var localPoint = new BABYLON.Vector3(0, z * this.extrusionScale.y, y);
 
 		// Extract only the rotation part of the matrix (3x3 upper-left)
 		var rotationMatrix = beetleRotationMatrix.clone();
@@ -1551,18 +1570,20 @@ Beetle.prototype.renderTorus = function (width, length) {
 	var beetlePos = this.body.position;
 	var beetleRotationMatrix = this.body.computeWorldMatrix(true);
 
-	// Get thickness from shape scale
-	var thickness = Math.max(this.shapeScale.x, this.shapeScale.y);
+	// Get thickness from shape scale and extrusion scale
+	var thickness =
+		Math.max(this.shapeScale.x, this.shapeScale.y) * Math.max(this.extrusionScale.x, this.extrusionScale.z);
 	if (thickness < 0.1) thickness = 0.1; // Minimum thickness
 
 	// Create the torus path points (full circle instead of half circle)
 	var torusPoints = [];
 	for (var theta = 0; theta <= 2 * Math.PI + 0.1; theta += Math.PI / ARC_SEGMENTS) {
-		var y = xRadius * Math.cos(theta);
-		var z = yRadius * Math.sin(theta);
+		var y = xRadius * Math.cos(theta) * this.extrusionScale.x;
+		var z = yRadius * Math.sin(theta) * this.extrusionScale.z;
 
 		// Create local point relative to beetle - swap Y and Z coordinates
-		var localPoint = new BABYLON.Vector3(0, z, y);
+		// Apply Y scaling to the Y component (depth/thickness)
+		var localPoint = new BABYLON.Vector3(0, z * this.extrusionScale.y, y);
 
 		// Extract only the rotation part of the matrix (3x3 upper-left)
 		var rotationMatrix = beetleRotationMatrix.clone();
@@ -1614,7 +1635,7 @@ Beetle.prototype.renderSphere = function (radius) {
 	var beetlePos = this.body.position;
 	var beetleRotationMatrix = this.body.computeWorldMatrix(true);
 
-	// Create sphere
+	// Create sphere with extrusion scaling
 	var sphere = BABYLON.MeshBuilder.CreateSphere(
 		"sphere",
 		{
@@ -1623,6 +1644,9 @@ Beetle.prototype.renderSphere = function (radius) {
 		},
 		this.controller.scene
 	);
+
+	// Apply extrusion scaling
+	sphere.scaling = this.extrusionScale.clone();
 
 	// Position and orient the sphere
 	sphere.position = beetlePos;
@@ -1649,13 +1673,13 @@ Beetle.prototype.renderBox = function (width, height, depth) {
 	var beetlePos = this.body.position;
 	var beetleRotationMatrix = this.body.computeWorldMatrix(true);
 
-	// Create box
+	// Create box with extrusion scaling
 	var box = BABYLON.MeshBuilder.CreateBox(
 		"box",
 		{
-			width: width,
-			height: height,
-			depth: depth,
+			width: width * this.extrusionScale.x,
+			height: height * this.extrusionScale.z,
+			depth: depth * this.extrusionScale.y,
 		},
 		this.controller.scene
 	);
@@ -1685,13 +1709,13 @@ Beetle.prototype.renderCylinder = function (top, bottom, height) {
 	var beetlePos = this.body.position;
 	var beetleRotationMatrix = this.body.computeWorldMatrix(true);
 
-	// Create cylinder
+	// Create cylinder with extrusion scaling
 	var cylinder = BABYLON.MeshBuilder.CreateCylinder(
 		"cylinder",
 		{
-			height: height,
-			diameterTop: top * 2,
-			diameterBottom: bottom * 2,
+			height: height * this.extrusionScale.z,
+			diameterTop: top * 2 * this.extrusionScale.x,
+			diameterBottom: bottom * 2 * this.extrusionScale.x,
 			tessellation: 90,
 		},
 		this.controller.scene
@@ -1722,17 +1746,17 @@ Beetle.prototype.renderTorusKnot = function (radius, tube, p, q, heightScale) {
 	var beetlePos = this.body.position;
 	var beetleRotationMatrix = this.body.computeWorldMatrix(true);
 
-	// Create torus knot
+	// Create torus knot with extrusion scaling
 	var torusKnot = BABYLON.MeshBuilder.CreateTorusKnot(
 		"torusKnot",
 		{
-			radius: radius,
-			tube: tube,
+			radius: radius * this.extrusionScale.x,
+			tube: tube * this.extrusionScale.y,
 			radialSegments: 24,
 			tubularSegments: 10,
 			p: p,
 			q: q,
-			heightScale: heightScale,
+			heightScale: heightScale * this.extrusionScale.z,
 		},
 		this.controller.scene
 	);
@@ -1780,6 +1804,60 @@ Beetle.prototype.moveForward = function (dist) {
 	if (this.extruding) {
 		this.extrudeToCurrentPoint();
 	}
+};
+
+// Camera control methods
+Beetle.prototype.rotateCamera = function (degrees, axis) {
+	var radians = (degrees * Math.PI) / 180;
+	var camera = this.controller.camera;
+
+	switch (axis.toLowerCase()) {
+		case "x":
+			camera.beta += radians;
+			break;
+		case "y":
+			camera.alpha += radians;
+			break;
+		case "z":
+			// For Z rotation, we need to adjust both alpha and beta
+			// This is a simplified implementation
+			camera.alpha += radians * 0.5;
+			camera.beta += radians * 0.5;
+			break;
+	}
+
+	this.controller.changed();
+};
+
+Beetle.prototype.zoomToFit = function () {
+	this.controller.dialog.zoomToFit();
+};
+
+Beetle.prototype.toggleBeetleVisibility = function () {
+	this.controller.dialog.toggleBeetle();
+};
+
+Beetle.prototype.resetCameraToInitial = function () {
+	var camera = this.controller.camera;
+
+	// Reset to initial camera position (same as the initCamera method)
+	camera.radius = 10;
+	camera.setTarget(BABYLON.Vector3.Zero());
+	camera.alpha = (315 * Math.PI) / 180; // 315 degrees
+	camera.beta = Math.PI / 3; // 60 degrees
+	camera.framing = false;
+
+	// Disable FPV if enabled
+	if (camera.fpvEnabled) {
+		camera.setFPV(false);
+	}
+
+	// Disable orthographic mode if enabled
+	if (camera.isOrtho()) {
+		camera.toggleOrtho();
+	}
+
+	this.controller.changed();
 };
 
 // SnapExtensions API ////////////////////////////////////////////////////
@@ -2046,4 +2124,44 @@ SnapExtensions.primitives.set("ananse_moveForward(dist)", function (dist) {
 		return;
 	}
 	stage.beetleController.beetle.moveForward(dist);
+});
+
+SnapExtensions.primitives.set("bb_scaleExtrusion(x, y, z)", function (x, y, z) {
+	var stage = this.parentThatIsA(StageMorph);
+	if (!stage.beetleController) {
+		return;
+	}
+	stage.beetleController.beetle.scaleExtrusion(x, y, z);
+});
+
+SnapExtensions.primitives.set("bb_rotateCamera(degrees, axis)", function (degrees, axis) {
+	var stage = this.parentThatIsA(StageMorph);
+	if (!stage.beetleController) {
+		return;
+	}
+	stage.beetleController.beetle.rotateCamera(degrees, axis);
+});
+
+SnapExtensions.primitives.set("bb_zoomToFit()", function () {
+	var stage = this.parentThatIsA(StageMorph);
+	if (!stage.beetleController) {
+		return;
+	}
+	stage.beetleController.beetle.zoomToFit();
+});
+
+SnapExtensions.primitives.set("bb_toggleBeetleVisibility()", function () {
+	var stage = this.parentThatIsA(StageMorph);
+	if (!stage.beetleController) {
+		return;
+	}
+	stage.beetleController.beetle.toggleBeetleVisibility();
+});
+
+SnapExtensions.primitives.set("bb_resetCameraToInitial()", function () {
+	var stage = this.parentThatIsA(StageMorph);
+	if (!stage.beetleController) {
+		return;
+	}
+	stage.beetleController.beetle.resetCameraToInitial();
 });
