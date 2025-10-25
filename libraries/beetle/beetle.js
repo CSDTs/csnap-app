@@ -44,6 +44,81 @@ if (!SpriteMorph.prototype.originalSetColorDimension) {
 	};
 }
 
+// BeetleStageOverlayMorph //////////////////////////////////////////////////
+
+function BeetleStageOverlayMorph(stage, controller) {
+	this.init(stage, controller);
+}
+
+BeetleStageOverlayMorph.prototype = new Morph();
+BeetleStageOverlayMorph.prototype.constructor = BeetleStageOverlayMorph;
+BeetleStageOverlayMorph.uber = Morph.prototype;
+
+BeetleStageOverlayMorph.prototype.init = function (stage, controller) {
+	this.stage = stage;
+	this.controller = controller;
+
+	// Initialize the morph first
+	BeetleStageOverlayMorph.uber.init.call(this);
+
+	// Set the overlay to cover the entire stage
+	this.setExtent(stage.extent());
+	this.setPosition(stage.position());
+
+	// Make it not transparent so it can receive mouse events
+	this.isTransparent = false;
+
+	// Ensure it's on top
+	this.isCachingImage = false;
+
+	// Hook into stage's setExtent method to detect resizing
+	var overlay = this;
+	var originalSetExtent = stage.setExtent;
+	overlay.originalSetExtent = originalSetExtent; // Store for cleanup
+	stage.setExtent = function (point) {
+		// Call original method
+		originalSetExtent.call(this, point);
+
+		// Update overlay if it exists and controller is in overlay mode
+		if (overlay && overlay.controller && overlay.controller.overlayMode) {
+			overlay.setExtent(point);
+			overlay.setPosition(this.position());
+
+			// Update controller canvas size and camera
+			overlay.controller.renderWidth = point.x;
+			overlay.controller.renderHeight = point.y;
+			overlay.controller.glCanvas.width = point.x;
+			overlay.controller.glCanvas.height = point.y;
+			overlay.controller.glCanvas.style.width = point.x + "px";
+			overlay.controller.glCanvas.style.height = point.y + "px";
+			overlay.controller.engine.setSize(point.x, point.y);
+
+			// Recalculate camera for new size
+			overlay.controller.adjustCameraForOverlay();
+
+			// Force re-render
+			overlay.controller.shouldRerender = true;
+			overlay.controller.firstTimeOpenCount = 0;
+
+			console.log("Stage resized - overlay updated to:", point.x, "x", point.y);
+		}
+	};
+};
+
+BeetleStageOverlayMorph.prototype.render = function (ctx) {
+	// Draw the 3D canvas content exactly like the dialog does
+	if (this.controller && this.controller.glCanvas) {
+		ctx.drawImage(this.controller.glCanvas, 0, 0, this.controller.renderWidth, this.controller.renderHeight);
+	}
+};
+
+BeetleStageOverlayMorph.prototype.step = function () {
+	// Update 3D rendering
+	if (this.controller) {
+		this.controller.render();
+	}
+};
+
 // BeetleController //////////////////////////////////////////////////////
 
 function BeetleController(stage) {
@@ -63,16 +138,28 @@ BeetleController.prototype.init = function (stage) {
 
 	this.axisLines = {};
 	this.axisLabels = {};
-	this.axesEnabled = true;
+	this.axesEnabledFlag = true;
 
-	this.ghostModeEnabled = false;
-	this.wireframeEnabled = false;
+	this.ghostModeEnabledFlag = false;
+	this.wireframeEnabledFlag = false;
 
 	this.shouldRerender = false;
 	this.renderWidth = 480;
 	this.renderHeight = 360;
 
 	this.fullScreenMode = false;
+
+	// Overlay mode properties
+	this.overlayMode = false;
+	this.stageOverlay = null;
+	this.originalStageVisibility = true;
+	this.overlayControls = null;
+	this.beetleControlsBar = null;
+	this.beetleCoordinatesBar = null;
+
+	// Toggle state properties
+	this.wireframeEnabled = false;
+	this.ghostModeEnabled = false;
 
 	this.initCanvas();
 	this.initEngine();
@@ -84,6 +171,7 @@ BeetleController.prototype.init = function (stage) {
 	this.beetleTrails = [];
 
 	this.beetle = new Beetle(this);
+	this.beetle.visibility = 1; // Ensure beetle is visible by default
 
 	this.initAxes();
 	this.initDialog();
@@ -310,6 +398,7 @@ BeetleController.prototype.initGrid = function () {
 
 	this.grid = BABYLON.MeshBuilder.CreateGround("grid", { width: 400, height: 400 }, this.scene);
 	this.grid.material = gridMaterial;
+	this.grid.visibility = 1; // Ensure grid is visible by default
 };
 
 BeetleController.prototype.initAxes = function () {
@@ -383,6 +472,10 @@ BeetleController.prototype.render = function () {
 		this.scene.render();
 		if (this.fullScreenMode) {
 			world.changed();
+		} else if (this.overlayMode) {
+			if (this.stageOverlay) {
+				this.stageOverlay.changed();
+			}
 		} else {
 			this.dialog.changed();
 		}
@@ -390,6 +483,901 @@ BeetleController.prototype.render = function () {
 			this.shouldRerender = false;
 			this.firstTimeOpenCount += 1;
 		}
+	}
+};
+
+// Overlay Mode Methods ////////////////////////////////////////////////////
+
+BeetleController.prototype.enableOverlayMode = function () {
+	if (this.overlayMode) return;
+
+	this.overlayMode = true;
+
+	// Update canvas size to match stage
+	this.renderWidth = this.stage.width();
+	this.renderHeight = this.stage.height();
+	this.glCanvas.width = this.renderWidth;
+	this.glCanvas.height = this.renderHeight;
+	this.glCanvas.style.width = this.renderWidth + "px";
+	this.glCanvas.style.height = this.renderHeight + "px";
+	this.engine.setSize(this.renderWidth, this.renderHeight);
+
+	// Force a re-render with the new size
+	this.shouldRerender = true;
+	this.firstTimeOpenCount = 0; // Reset to force rendering
+
+	console.log("Canvas resized to:", this.renderWidth, "x", this.renderHeight);
+
+	// Adjust camera to show more of the scene (zoom out)
+	this.adjustCameraForOverlay();
+
+	// Create the overlay morph
+	this.stageOverlay = new BeetleStageOverlayMorph(this.stage, this);
+
+	// Add it as a child of the stage (on top)
+	this.stage.add(this.stageOverlay);
+
+	// Set up mouse controls on the overlay
+	this.setupOverlayMouseControls();
+
+	// Create overlay controls
+	this.createOverlayControls();
+
+	// Create beetle coordinates bar
+	this.createBeetleCoordinatesBar();
+
+	this.changed();
+};
+
+BeetleController.prototype.disableOverlayMode = function () {
+	if (!this.overlayMode) return;
+
+	this.overlayMode = false;
+
+	// Restore original camera settings
+	this.restoreCameraFromOverlay();
+
+	// Restore original setExtent method if it was overridden
+	if (this.stageOverlay && this.stageOverlay.originalSetExtent) {
+		this.stage.setExtent = this.stageOverlay.originalSetExtent;
+	}
+
+	// Remove the overlay
+	if (this.stageOverlay) {
+		this.stage.removeChild(this.stageOverlay);
+		this.stageOverlay.destroy();
+		this.stageOverlay = null;
+	}
+
+	// Hide beetle coordinates bar
+	this.hideBeetleCoordinatesBar();
+
+	this.changed();
+};
+
+BeetleController.prototype.toggleOverlayMode = function () {
+	if (this.overlayMode) {
+		console.log("Disabling overlay mode");
+		this.disableOverlayMode();
+		this.showStageContent();
+		this.hideBeetleCoordinatesBar();
+	} else {
+		console.log("Enabling overlay mode");
+		this.enableOverlayMode();
+		this.hideStageContent();
+		this.showBeetleCoordinatesBar();
+	}
+};
+
+BeetleController.prototype.setupOverlayMouseControls = function () {
+	var controller = this;
+
+	this.stageOverlay.mouseScroll = function (y, x) {
+		controller.camera.zoomBy(y);
+	};
+
+	this.stageOverlay.mouseDownLeft = function (pos) {
+		controller.camera.clickOrigin = pos;
+	};
+
+	this.stageOverlay.mouseDownRight = this.stageOverlay.mouseDownLeft;
+
+	this.stageOverlay.mouseMove = function (pos, button) {
+		if (button === "left") {
+			controller.camera.rotateBy(pos);
+		} else if (button === "right") {
+			controller.camera.panBy(pos);
+		}
+	};
+};
+
+BeetleController.prototype.hideStageContent = function () {
+	if (!this.stage) return;
+
+	// Store original visibility
+	this.originalStageVisibility = this.stage.isVisible;
+
+	// Hide stage content by overriding its drawOn method
+	var controller = this;
+	this.stage.originalDrawOn = this.stage.drawOn;
+	this.stage.drawOn = function (ctx, rect) {
+		// Only render background color, skip sprites and other content
+		ctx.save();
+		ctx.fillStyle = this.color.toString();
+		ctx.fillRect(rect.left(), rect.top(), rect.width(), rect.height());
+		ctx.restore();
+	};
+
+	this.stage.changed();
+};
+
+BeetleController.prototype.showStageContent = function () {
+	if (!this.stage || !this.stage.originalDrawOn) return;
+
+	// Restore original drawOn method
+	this.stage.drawOn = this.stage.originalDrawOn;
+	this.stage.originalDrawOn = null;
+
+	this.stage.changed();
+};
+
+BeetleController.prototype.createBeetleCoordinatesBar = function () {
+	if (this.beetleCoordinatesBar) {
+		this.beetleCoordinatesBar.destroy();
+	}
+
+	// Get the IDE to access the corralBar
+	var ide = this.stage.parentThatIsA(IDE_Morph);
+	if (!ide || !ide.corralBar) {
+		console.log("Could not find IDE or corralBar for beetle coordinates");
+		return;
+	}
+
+	// Create the beetle controls bar (buttons + toggles)
+	this.beetleControlsBar = new Morph();
+	this.beetleControlsBar.color = ide.frameColor;
+	this.beetleControlsBar.setHeight(ide.logo.height() + 120); // Increased height for buttons + toggles
+	this.beetleControlsBar.setWidth(ide.stage.width());
+
+	// Create title label
+	var padding = 5;
+	var titleLabel = new StringMorph(
+		"Controls",
+		12,
+		"sans-serif",
+		true,
+		false,
+		false,
+		MorphicPreferences.isFlat ? null : new Point(2, 1),
+		ide.frameColor.darker(ide.buttonContrast)
+	);
+	titleLabel.color = ide.buttonLabelColor;
+	titleLabel.fixLayout();
+	titleLabel.setLeft(this.beetleControlsBar.left() + padding);
+	titleLabel.setTop(this.beetleControlsBar.top() + padding);
+
+	// Create control buttons (stacked vertically)
+	var buttonSpacing = 25;
+	var buttonWidth = 80;
+	var buttonHeight = 20;
+
+	// Grid Size button
+	var gridSizeButton = new PushButtonMorph(this, "adjustGridSize", "Grid Size");
+	gridSizeButton.fontSize = 12;
+	gridSizeButton.setExtent(new Point(buttonWidth, buttonHeight));
+	gridSizeButton.setLeft(this.beetleControlsBar.left() + padding);
+	gridSizeButton.setTop(this.beetleControlsBar.top() + padding + 25);
+
+	// Zoom to fit button
+	var zoomToFitButton = new PushButtonMorph(this, "zoomToFit", "Zoom to fit");
+	zoomToFitButton.fontSize = 12;
+	zoomToFitButton.setExtent(new Point(buttonWidth, buttonHeight));
+	zoomToFitButton.setLeft(this.beetleControlsBar.left() + padding);
+	zoomToFitButton.setTop(this.beetleControlsBar.top() + padding + 25 + buttonSpacing);
+
+	// Reset Camera button
+	var resetCameraButton = new PushButtonMorph(this, "resetCamera", "Reset Camera");
+	resetCameraButton.fontSize = 12;
+	resetCameraButton.setExtent(new Point(buttonWidth, buttonHeight));
+	resetCameraButton.setLeft(this.beetleControlsBar.left() + padding);
+	resetCameraButton.setTop(this.beetleControlsBar.top() + padding + 25 + buttonSpacing * 2);
+
+	// Export button
+	var exportButton = new PushButtonMorph(this, "exportSTL", "Export");
+	exportButton.fontSize = 12;
+	exportButton.setExtent(new Point(buttonWidth, buttonHeight));
+	exportButton.setLeft(this.beetleControlsBar.left() + padding);
+	exportButton.setTop(this.beetleControlsBar.top() + padding + 25 + buttonSpacing * 3);
+
+	this.beetleControlsBar.add(titleLabel);
+	this.beetleControlsBar.add(gridSizeButton);
+	this.beetleControlsBar.add(zoomToFitButton);
+	this.beetleControlsBar.add(resetCameraButton);
+	this.beetleControlsBar.add(exportButton);
+
+	// Create toggle controls in two columns
+	var toggleSpacing = 20;
+	var toggleColumn1Left = this.beetleControlsBar.left() + padding + buttonWidth + 40; // Next to buttons
+	var toggleColumn2Left = this.beetleControlsBar.left() + padding + buttonWidth + 40 + 120; // Second column
+
+	// Create wrapper functions for query methods
+	var controller = this;
+	var beetleQuery = function () {
+		return controller.beetleEnabled();
+	};
+	var gridQuery = function () {
+		return controller.gridEnabled();
+	};
+	var axesQuery = function () {
+		return controller.axesEnabled();
+	};
+	var extrusionBaseQuery = function () {
+		return controller.extrusionBaseEnabled();
+	};
+	var wireframeQuery = function () {
+		return controller.wireframeEnabledFlag;
+	};
+	var ghostModeQuery = function () {
+		return controller.ghostModeEnabledFlag;
+	};
+	var fpvQuery = function () {
+		return controller.fpvEnabled();
+	};
+	var orthoQuery = function () {
+		return controller.orthoEnabled();
+	};
+
+	// Column 1 toggles
+	var beetleToggle = new ToggleMorph("checkbox", this, "toggleBeetle", "Beetle", beetleQuery);
+	var gridToggle = new ToggleMorph("checkbox", this, "toggleGrid", "Grid", gridQuery);
+	var axesToggle = new ToggleMorph("checkbox", this, "toggleAxes", "Axes", axesQuery);
+	var extrusionBaseToggle = new ToggleMorph(
+		"checkbox",
+		this,
+		"toggleExtrusionBase",
+		"Extrusion base",
+		extrusionBaseQuery
+	);
+
+	// Column 2 toggles
+	var wireframeToggle = new ToggleMorph("checkbox", this, "toggleWireframe", "Wireframe", wireframeQuery);
+	var ghostModeToggle = new ToggleMorph("checkbox", this, "toggleGhostMode", "Ghost mode", ghostModeQuery);
+	var fpvToggle = new ToggleMorph("checkbox", this, "toggleFPV", "First person view", fpvQuery);
+	var orthoToggle = new ToggleMorph("checkbox", this, "toggleOrtho", "Orthographic mode", orthoQuery);
+
+	// Position column 1 toggles
+	beetleToggle.setLeft(toggleColumn1Left);
+	beetleToggle.setTop(this.beetleControlsBar.top() + padding + 25);
+
+	gridToggle.setLeft(toggleColumn1Left);
+	gridToggle.setTop(this.beetleControlsBar.top() + padding + 25 + toggleSpacing);
+
+	axesToggle.setLeft(toggleColumn1Left);
+	axesToggle.setTop(this.beetleControlsBar.top() + padding + 25 + toggleSpacing * 2);
+
+	extrusionBaseToggle.setLeft(toggleColumn1Left);
+	extrusionBaseToggle.setTop(this.beetleControlsBar.top() + padding + 25 + toggleSpacing * 3);
+
+	// Position column 2 toggles
+	wireframeToggle.setLeft(toggleColumn2Left);
+	wireframeToggle.setTop(this.beetleControlsBar.top() + padding + 25);
+
+	ghostModeToggle.setLeft(toggleColumn2Left);
+	ghostModeToggle.setTop(this.beetleControlsBar.top() + padding + 25 + toggleSpacing);
+
+	fpvToggle.setLeft(toggleColumn2Left);
+	fpvToggle.setTop(this.beetleControlsBar.top() + padding + 25 + toggleSpacing * 2);
+
+	orthoToggle.setLeft(toggleColumn2Left);
+	orthoToggle.setTop(this.beetleControlsBar.top() + padding + 25 + toggleSpacing * 3);
+
+	// Add toggles to the bar
+	this.beetleControlsBar.add(beetleToggle);
+	this.beetleControlsBar.add(gridToggle);
+	this.beetleControlsBar.add(axesToggle);
+	this.beetleControlsBar.add(extrusionBaseToggle);
+	this.beetleControlsBar.add(wireframeToggle);
+	this.beetleControlsBar.add(ghostModeToggle);
+	this.beetleControlsBar.add(fpvToggle);
+	this.beetleControlsBar.add(orthoToggle);
+
+	// Set toggle label colors to match coordinate labels
+	var toggles = [
+		beetleToggle,
+		gridToggle,
+		axesToggle,
+		extrusionBaseToggle,
+		wireframeToggle,
+		ghostModeToggle,
+		fpvToggle,
+		orthoToggle,
+	];
+	toggles.forEach((toggle) => {
+		if (toggle.label) {
+			toggle.label.color = ide.buttonLabelColor;
+			toggle.label.rerender();
+		}
+	});
+
+	// Create separate coordinates bar
+	this.beetleCoordinatesBar = new Morph();
+	this.beetleCoordinatesBar.color = ide.frameColor;
+	this.beetleCoordinatesBar.setHeight(ide.logo.height() + 64); // Increased by 24px for new content
+	this.beetleCoordinatesBar.setWidth(ide.stage.width());
+
+	// Create position labels
+	var posTitleLabel = new StringMorph(
+		"Position:",
+		12,
+		"sans-serif",
+		true,
+		false,
+		false,
+		MorphicPreferences.isFlat ? null : new Point(2, 1),
+		ide.frameColor.darker(ide.buttonContrast)
+	);
+	var xlabel = new StringMorph(
+		"X:        0",
+		12,
+		"sans-serif",
+		true,
+		false,
+		false,
+		MorphicPreferences.isFlat ? null : new Point(2, 1),
+		ide.frameColor.darker(ide.buttonContrast)
+	);
+	var ylabel = new StringMorph(
+		"Y:        0",
+		12,
+		"sans-serif",
+		true,
+		false,
+		false,
+		MorphicPreferences.isFlat ? null : new Point(2, 1),
+		ide.frameColor.darker(ide.buttonContrast)
+	);
+	var zlabel = new StringMorph(
+		"Z:        0",
+		12,
+		"sans-serif",
+		true,
+		false,
+		false,
+		MorphicPreferences.isFlat ? null : new Point(2, 1),
+		ide.frameColor.darker(ide.buttonContrast)
+	);
+
+	// Create rotation labels
+	var rotTitleLabel = new StringMorph(
+		"Rotation:",
+		12,
+		"sans-serif",
+		true,
+		false,
+		false,
+		MorphicPreferences.isFlat ? null : new Point(2, 1),
+		ide.frameColor.darker(ide.buttonContrast)
+	);
+	var rxlabel = new StringMorph(
+		"X:        0",
+		12,
+		"sans-serif",
+		true,
+		false,
+		false,
+		MorphicPreferences.isFlat ? null : new Point(2, 1),
+		ide.frameColor.darker(ide.buttonContrast)
+	);
+	var rylabel = new StringMorph(
+		"Y:        0",
+		12,
+		"sans-serif",
+		true,
+		false,
+		false,
+		MorphicPreferences.isFlat ? null : new Point(2, 1),
+		ide.frameColor.darker(ide.buttonContrast)
+	);
+	var rzlabel = new StringMorph(
+		"Z:        0",
+		12,
+		"sans-serif",
+		true,
+		false,
+		false,
+		MorphicPreferences.isFlat ? null : new Point(2, 1),
+		ide.frameColor.darker(ide.buttonContrast)
+	);
+
+	// Create extrusion labels
+	var extTitleLabel = new StringMorph(
+		"Extrusion:",
+		12,
+		"sans-serif",
+		true,
+		false,
+		false,
+		MorphicPreferences.isFlat ? null : new Point(2, 1),
+		ide.frameColor.darker(ide.buttonContrast)
+	);
+	var shapeScaleLabel = new StringMorph(
+		"Shape: 1",
+		12,
+		"sans-serif",
+		true,
+		false,
+		false,
+		MorphicPreferences.isFlat ? null : new Point(2, 1),
+		ide.frameColor.darker(ide.buttonContrast)
+	);
+	var movementScaleLabel = new StringMorph(
+		"Movement: 1",
+		12,
+		"sans-serif",
+		true,
+		false,
+		false,
+		MorphicPreferences.isFlat ? null : new Point(2, 1),
+		ide.frameColor.darker(ide.buttonContrast)
+	);
+
+	// Style all the labels
+	posTitleLabel.color = ide.buttonLabelColor;
+	xlabel.color = ide.buttonLabelColor;
+	ylabel.color = ide.buttonLabelColor;
+	zlabel.color = ide.buttonLabelColor;
+	rotTitleLabel.color = ide.buttonLabelColor;
+	rxlabel.color = ide.buttonLabelColor;
+	rylabel.color = ide.buttonLabelColor;
+	rzlabel.color = ide.buttonLabelColor;
+	extTitleLabel.color = ide.buttonLabelColor;
+	shapeScaleLabel.color = ide.buttonLabelColor;
+	movementScaleLabel.color = ide.buttonLabelColor;
+
+	posTitleLabel.fixLayout();
+	xlabel.fixLayout();
+	ylabel.fixLayout();
+	zlabel.fixLayout();
+	rotTitleLabel.fixLayout();
+	rxlabel.fixLayout();
+	rylabel.fixLayout();
+	rzlabel.fixLayout();
+	extTitleLabel.fixLayout();
+	shapeScaleLabel.fixLayout();
+	movementScaleLabel.fixLayout();
+
+	// Position the labels - Position on left, Rotation in middle, Extrusion on right
+	var labelSpacing = 18;
+	var leftColumn = this.beetleCoordinatesBar.left() + padding;
+	var middleColumn = this.beetleCoordinatesBar.left() + padding + 120; // Rotation column
+	var rightColumn = this.beetleCoordinatesBar.left() + padding + 240; // Extrusion column
+
+	// Position labels
+	posTitleLabel.setLeft(leftColumn);
+	posTitleLabel.setTop(this.beetleCoordinatesBar.top() + padding + 5);
+
+	xlabel.setLeft(leftColumn);
+	xlabel.setTop(this.beetleCoordinatesBar.top() + padding + 5 + labelSpacing);
+
+	ylabel.setLeft(leftColumn);
+	ylabel.setTop(this.beetleCoordinatesBar.top() + padding + 5 + labelSpacing * 2);
+
+	zlabel.setLeft(leftColumn);
+	zlabel.setTop(this.beetleCoordinatesBar.top() + padding + 5 + labelSpacing * 3);
+
+	// Rotation labels
+	rotTitleLabel.setLeft(middleColumn);
+	rotTitleLabel.setTop(this.beetleCoordinatesBar.top() + padding + 5);
+
+	rxlabel.setLeft(middleColumn);
+	rxlabel.setTop(this.beetleCoordinatesBar.top() + padding + 5 + labelSpacing);
+
+	rylabel.setLeft(middleColumn);
+	rylabel.setTop(this.beetleCoordinatesBar.top() + padding + 5 + labelSpacing * 2);
+
+	rzlabel.setLeft(middleColumn);
+	rzlabel.setTop(this.beetleCoordinatesBar.top() + padding + 5 + labelSpacing * 3);
+
+	// Extrusion labels
+	extTitleLabel.setLeft(rightColumn);
+	extTitleLabel.setTop(this.beetleCoordinatesBar.top() + padding + 5);
+
+	shapeScaleLabel.setLeft(rightColumn);
+	shapeScaleLabel.setTop(this.beetleCoordinatesBar.top() + padding + 5 + labelSpacing);
+
+	movementScaleLabel.setLeft(rightColumn);
+	movementScaleLabel.setTop(this.beetleCoordinatesBar.top() + padding + 5 + labelSpacing * 2);
+
+	this.beetleCoordinatesBar.add(posTitleLabel);
+	this.beetleCoordinatesBar.add(xlabel);
+	this.beetleCoordinatesBar.add(ylabel);
+	this.beetleCoordinatesBar.add(zlabel);
+	this.beetleCoordinatesBar.add(rotTitleLabel);
+	this.beetleCoordinatesBar.add(rxlabel);
+	this.beetleCoordinatesBar.add(rylabel);
+	this.beetleCoordinatesBar.add(rzlabel);
+	this.beetleCoordinatesBar.add(extTitleLabel);
+	this.beetleCoordinatesBar.add(shapeScaleLabel);
+	this.beetleCoordinatesBar.add(movementScaleLabel);
+
+	// Store references for updating
+	this.beetleXLabel = xlabel;
+	this.beetleYLabel = ylabel;
+	this.beetleZLabel = zlabel;
+	this.beetleRXLabel = rxlabel;
+	this.beetleRYLabel = rylabel;
+	this.beetleRZLabel = rzlabel;
+	this.beetleShapeScaleLabel = shapeScaleLabel;
+	this.beetleMovementScaleLabel = movementScaleLabel;
+
+	// Add step function to update coordinates
+	var controller = this;
+	this.beetleCoordinatesBar.step = function () {
+		controller.updateBeetleCoordinates();
+	};
+
+	// Add both bars to the IDE
+	ide.add(this.beetleControlsBar);
+	ide.add(this.beetleCoordinatesBar);
+
+	// Initially hide both bars
+	this.beetleControlsBar.hide();
+	this.beetleCoordinatesBar.hide();
+
+	console.log("Beetle controls and coordinates bars created");
+};
+
+BeetleController.prototype.updateBeetleCoordinates = function () {
+	if (
+		!this.beetleCoordinatesBar ||
+		!this.beetleXLabel ||
+		!this.beetleYLabel ||
+		!this.beetleZLabel ||
+		!this.beetleRXLabel ||
+		!this.beetleRYLabel ||
+		!this.beetleRZLabel ||
+		!this.beetleShapeScaleLabel ||
+		!this.beetleMovementScaleLabel
+	) {
+		return;
+	}
+
+	// Get beetle position - getPosition() returns a List with [x, z, y] coordinates
+	var beetlePosList = this.beetle.getPosition();
+	var x = Math.round(beetlePosList.at(1)); // x is at index 1
+	var y = Math.round(beetlePosList.at(2)); // z becomes y (swapped)
+	var z = Math.round(beetlePosList.at(3)); // y becomes z (swapped)
+
+	// Get beetle rotation - getRotation() returns a List with [x, z, y] rotation values
+	var beetleRotList = this.beetle.getRotation();
+	var rx = Math.round(beetleRotList.at(1)); // x rotation is at index 1
+	var ry = Math.round(beetleRotList.at(2)); // z rotation becomes y rotation (swapped)
+	var rz = Math.round(beetleRotList.at(3)); // y rotation becomes z rotation (swapped)
+
+	// Get extrusion scale values
+	var shapeScale = Math.round(this.beetle.shapeScale.x * 100) / 100; // Round to 2 decimal places
+	var movementScale = Math.round(this.beetle.movementScale * 100) / 100; // Round to 2 decimal places
+
+	// Update position labels
+	var newXText = "X: " + x;
+	var newYText = "Y: " + y;
+	var newZText = "Z: " + z;
+
+	// Update rotation labels
+	var newRXText = "X: " + rx;
+	var newRYText = "Y: " + ry;
+	var newRZText = "Z: " + rz;
+
+	// Update extrusion labels
+	var newShapeScaleText = "Shape: " + shapeScale;
+	var newMovementScaleText = "Movement: " + movementScale;
+
+	// Only update if text has changed
+	if (this.beetleXLabel.text !== newXText) {
+		this.beetleXLabel.text = newXText;
+		this.beetleXLabel.rerender();
+	}
+	if (this.beetleYLabel.text !== newYText) {
+		this.beetleYLabel.text = newYText;
+		this.beetleYLabel.rerender();
+	}
+	if (this.beetleZLabel.text !== newZText) {
+		this.beetleZLabel.text = newZText;
+		this.beetleZLabel.rerender();
+	}
+	if (this.beetleRXLabel.text !== newRXText) {
+		this.beetleRXLabel.text = newRXText;
+		this.beetleRXLabel.rerender();
+	}
+	if (this.beetleRYLabel.text !== newRYText) {
+		this.beetleRYLabel.text = newRYText;
+		this.beetleRYLabel.rerender();
+	}
+	if (this.beetleRZLabel.text !== newRZText) {
+		this.beetleRZLabel.text = newRZText;
+		this.beetleRZLabel.rerender();
+	}
+	if (this.beetleShapeScaleLabel.text !== newShapeScaleText) {
+		this.beetleShapeScaleLabel.text = newShapeScaleText;
+		this.beetleShapeScaleLabel.rerender();
+	}
+	if (this.beetleMovementScaleLabel.text !== newMovementScaleText) {
+		this.beetleMovementScaleLabel.text = newMovementScaleText;
+		this.beetleMovementScaleLabel.rerender();
+	}
+
+	// Mark as changed if any text changed
+	if (
+		this.beetleXLabel.text !== newXText ||
+		this.beetleYLabel.text !== newYText ||
+		this.beetleZLabel.text !== newZText ||
+		this.beetleRXLabel.text !== newRXText ||
+		this.beetleRYLabel.text !== newRYText ||
+		this.beetleRZLabel.text !== newRZText ||
+		this.beetleShapeScaleLabel.text !== newShapeScaleText ||
+		this.beetleMovementScaleLabel.text !== newMovementScaleText
+	) {
+		this.beetleCoordinatesBar.changed();
+	}
+};
+
+BeetleController.prototype.showBeetleCoordinatesBar = function () {
+	if (this.beetleControlsBar) {
+		this.beetleControlsBar.show();
+		this.beetleControlsBar.changed();
+	}
+	if (this.beetleCoordinatesBar) {
+		this.beetleCoordinatesBar.show();
+		this.beetleCoordinatesBar.changed();
+	}
+
+	// Trigger layout refresh to make the bars appear immediately
+	var ide = this.stage.parentThatIsA(IDE_Morph);
+	if (ide) {
+		ide.fixLayout();
+	}
+};
+
+BeetleController.prototype.hideBeetleCoordinatesBar = function () {
+	if (this.beetleControlsBar) {
+		this.beetleControlsBar.hide();
+		this.beetleControlsBar.changed();
+	}
+	if (this.beetleCoordinatesBar) {
+		this.beetleCoordinatesBar.hide();
+		this.beetleCoordinatesBar.changed();
+	}
+
+	// Trigger layout refresh to make the bars disappear immediately
+	var ide = this.stage.parentThatIsA(IDE_Morph);
+	if (ide) {
+		ide.fixLayout();
+	}
+};
+
+// Button functionality methods for beetle coordinates bar
+BeetleController.prototype.adjustGridSize = function () {
+	var currentSize = this.grid.scaling.x * 400; // Current actual size
+	var newSize = prompt("Enter new grid size (current: " + currentSize + "):", currentSize);
+
+	if (newSize && !isNaN(newSize)) {
+		var scale = newSize / 400;
+		this.grid.scaling.setAll(scale);
+		this.changed();
+	}
+};
+
+BeetleController.prototype.zoomToFit = function () {
+	if (this.beetleTrails[0] && !this.camera.framing) {
+		if (this.camera.fpvEnabled) {
+			this.resetCamera();
+		}
+		var box = this.beetleTrailsBoundingBox(),
+			cam = this.camera,
+			framingBehavior = new BABYLON.FramingBehavior();
+
+		cam.inertialPanningX = 0;
+		cam.inertialPanningY = 0;
+		cam.inertialAlphaOffset = 0;
+		cam.inertialBetaOffset = 0;
+		cam.inertialRadiusOffset = 0;
+		cam.framing = true;
+
+		framingBehavior.attach(cam);
+		cam.framingBehavior = framingBehavior;
+		framingBehavior.zoomOnBoundingInfo(box.minimumWorld, box.maximumWorld, false, () => {
+			cam.framing = false;
+			framingBehavior.detach(cam);
+		});
+	}
+};
+
+BeetleController.prototype.resetCamera = function () {
+	this.camera.reset();
+	this.changed();
+};
+
+BeetleController.prototype.exportSTL = function () {
+	BABYLON.STLExport.CreateSTL(
+		this.beetleTrails,
+		true, // download
+		"beetle-trails", // filename
+		false, // binary ?
+		undefined, // little endian?
+		undefined, // do not bake transform
+		undefined, // support instanced meshes
+		undefined // exportIndividualMeshes
+	);
+};
+
+// Toggle methods for beetle controls bar
+BeetleController.prototype.toggleBeetle = function () {
+	var beetle = this.beetle;
+	if (this.beetleEnabled()) {
+		beetle.hide();
+	} else {
+		beetle.show();
+	}
+	this.changed();
+};
+
+BeetleController.prototype.beetleEnabled = function () {
+	return this.beetle.isVisible();
+};
+
+BeetleController.prototype.toggleGrid = function () {
+	this.grid.visibility = this.gridEnabled() ? 0 : 1;
+	this.changed();
+};
+
+BeetleController.prototype.gridEnabled = function () {
+	return this.grid.visibility === 1;
+};
+
+BeetleController.prototype.toggleAxes = function () {
+	// Toggle the axesEnabledFlag property
+	this.axesEnabledFlag = !this.axesEnabledFlag;
+
+	// Update axis lines visibility
+	Object.keys(this.axisLines).forEach((axis) => {
+		this.axisLines[axis].visibility = this.axesEnabledFlag ? 1 : 0;
+	});
+
+	// Update axis labels visibility
+	Object.keys(this.axisLabels).forEach((axis) => {
+		this.axisLabels[axis].isVisible = this.axesEnabledFlag;
+	});
+
+	this.changed();
+};
+
+BeetleController.prototype.axesEnabled = function () {
+	return this.axesEnabledFlag;
+};
+
+BeetleController.prototype.toggleExtrusionBase = function () {
+	this.beetle.extrusionBaseEnabled = !this.beetle.extrusionBaseEnabled;
+	this.beetle.extrusionShapeOutline.visibility = this.beetle.extrusionBaseEnabled && this.beetle.extruding ? 1 : 0;
+	this.changed();
+};
+
+BeetleController.prototype.extrusionBaseEnabled = function () {
+	return this.beetle.extrusionBaseEnabled;
+};
+
+BeetleController.prototype.toggleWireframe = function () {
+	this.wireframeEnabledFlag = !this.wireframeEnabledFlag;
+	this.beetleTrails.forEach((object) => {
+		object.material.wireframe = this.wireframeEnabledFlag;
+	});
+	this.changed();
+};
+
+BeetleController.prototype.wireframeEnabled = function () {
+	return this.wireframeEnabledFlag;
+};
+
+BeetleController.prototype.toggleGhostMode = function () {
+	this.ghostModeEnabledFlag = !this.ghostModeEnabledFlag;
+	this.beetleTrails.forEach((object) => (object.visibility = this.ghostModeEnabledFlag ? 0.25 : 1));
+	this.changed();
+};
+
+BeetleController.prototype.ghostModeEnabled = function () {
+	return this.ghostModeEnabledFlag;
+};
+
+BeetleController.prototype.toggleFPV = function () {
+	this.camera.toggleFPV();
+	this.changed();
+};
+
+BeetleController.prototype.fpvEnabled = function () {
+	return this.camera.fpvEnabled;
+};
+
+BeetleController.prototype.toggleOrtho = function () {
+	this.camera.toggleOrtho();
+	this.changed();
+};
+
+BeetleController.prototype.orthoEnabled = function () {
+	return this.camera.isOrtho();
+};
+
+BeetleController.prototype.createOverlayControls = function () {
+	var controller = this;
+
+	// Create a small control panel
+	this.overlayControls = new AlignmentMorph("row", 4);
+	this.overlayControls.setExtent(new Point(200, 30));
+	this.overlayControls.setPosition(new Point(10, 10));
+
+	// Add toggle button
+	var toggleButton = new PushButtonMorph(this, "toggleOverlayMode", "2D/3D");
+	this.overlayControls.add(toggleButton);
+
+	// Add to overlay
+	if (this.stageOverlay) {
+		this.stageOverlay.add(this.overlayControls);
+	}
+};
+
+// Camera adjustment methods for overlay mode
+
+BeetleController.prototype.adjustCameraForOverlay = function () {
+	// Only store original camera settings if not already stored
+	if (!this.originalCameraRadius) {
+		this.originalCameraRadius = this.camera.radius;
+		this.originalCameraAlpha = this.camera.alpha;
+		this.originalCameraBeta = this.camera.beta;
+		this.originalCameraTarget = this.camera.target.clone();
+	}
+
+	// Calculate how much we need to zoom out to fill the larger stage
+	var stageWidth = this.stage.width();
+	var stageHeight = this.stage.height();
+	var originalWidth = 480;
+	var originalHeight = 360;
+
+	// Calculate scale factors
+	var widthScale = stageWidth / originalWidth;
+	var heightScale = stageHeight / originalHeight;
+	var scaleFactor = Math.max(widthScale, heightScale);
+
+	// Zoom out significantly to show more of the scene
+	// Always use the original radius as the base, not the current radius
+	this.camera.radius = this.originalCameraRadius * scaleFactor * 3; // Much more aggressive zoom out
+
+	console.log(
+		"Camera adjustment - stage:",
+		stageWidth,
+		"x",
+		stageHeight,
+		"scale:",
+		scaleFactor,
+		"base radius:",
+		this.originalCameraRadius,
+		"new radius:",
+		this.camera.radius
+	);
+};
+
+BeetleController.prototype.restoreCameraFromOverlay = function () {
+	// Restore original camera settings
+	if (this.originalCameraRadius !== undefined) {
+		this.camera.radius = this.originalCameraRadius;
+		this.camera.alpha = this.originalCameraAlpha;
+		this.camera.beta = this.originalCameraBeta;
+		this.camera.setTarget(this.originalCameraTarget);
+
+		// Clear the stored settings so they can be reset next time
+		this.originalCameraRadius = undefined;
+		this.originalCameraAlpha = undefined;
+		this.originalCameraBeta = undefined;
+		this.originalCameraTarget = undefined;
+
+		console.log("Camera restored from overlay - radius:", this.camera.radius);
 	}
 };
 
@@ -843,7 +1831,7 @@ BeetleDialogMorph.prototype.axesEnabled = function () {
 BeetleDialogMorph.prototype.toggleBeetle = function () {
 	var beetle = this.controller.beetle;
 	if (this.beetleEnabled()) {
-		beetle.hideBeetle();
+		beetle.hide();
 	} else {
 		beetle.show();
 	}
@@ -1368,6 +2356,28 @@ Beetle.prototype.isVisible = function () {
 	return this.wings ? this.wings.visibility === 1 : true;
 };
 
+Beetle.prototype.show = function () {
+	if (!this.isReady()) {
+		return;
+	}
+
+	var extrusionShapeOutlineVisibility = this.extrusionShapeOutline.visibility;
+	// Show all loaded meshes directly
+	this.loadedMeshes.forEach((mesh) => (mesh.visibility = 1));
+	this.extrusionShapeOutline.visibility = extrusionShapeOutlineVisibility;
+};
+
+Beetle.prototype.hide = function () {
+	if (!this.isReady()) {
+		return;
+	}
+
+	var extrusionShapeOutlineVisibility = this.extrusionShapeOutline.visibility;
+	// Hide all loaded meshes directly
+	this.loadedMeshes.forEach((mesh) => (mesh.visibility = 0));
+	this.extrusionShapeOutline.visibility = extrusionShapeOutlineVisibility;
+};
+
 // User facing methods, called from blocks
 
 Beetle.prototype.move = function (axis, steps) {
@@ -1864,7 +2874,7 @@ Beetle.prototype.resetCameraToInitial = function () {
 // Buttons
 
 SnapExtensions.buttons.palette.push({
-	category: "3D Beetle",
+	category: "AnanseBot",
 	label: "Open 3D Window",
 	hideable: false,
 	action: function () {
@@ -1875,6 +2885,21 @@ SnapExtensions.buttons.palette.push({
 		stage.beetleController.open();
 	},
 });
+
+SnapExtensions.buttons.palette.push({
+	category: "AnanseBot",
+	label: "Toggle 3D Overlay",
+	hideable: false,
+	action: function () {
+		var stage = this.parentThatIsA(StageMorph);
+		if (!stage.beetleController) {
+			stage.beetleController = new BeetleController(stage);
+		}
+		stage.beetleController.toggleOverlayMode();
+	},
+});
+
+console.log("Beetle palette buttons added:", SnapExtensions.buttons.palette.length);
 
 // Initialize the extension
 
@@ -1891,7 +2916,7 @@ SnapExtensions.buttons.palette.push({
 		stage.beetleController = new BeetleController(stage);
 	}
 
-	stage.beetleController.open();
+	console.log("Beetle library loaded - palette refreshed");
 })();
 
 // Primitives

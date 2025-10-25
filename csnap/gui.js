@@ -810,14 +810,18 @@ IDE_Morph.prototype.reinitializeBeetleIfNeeded = function () {
 
 	// Check if the stage already has a controller
 	if (this.stage.beetleController) {
-		// console.log("[reinitializeBeetleIfNeeded] Controller already exists, reopening window");
-		// Controller exists, just make sure the window is open
-		this.stage.beetleController.open();
+		// console.log("[reinitializeBeetleIfNeeded] Controller already exists, enabling overlay mode");
+		// Controller exists, enable overlay mode instead of opening dialog
+		this.stage.beetleController.enableOverlayMode();
+		this.stage.beetleController.hideStageContent();
+		this.stage.beetleController.showBeetleCoordinatesBar();
 	} else {
 		// console.log("[reinitializeBeetleIfNeeded] Creating new controller");
-		// Create new controller and open it
+		// Create new controller and enable overlay mode
 		this.stage.beetleController = new BeetleController(this.stage);
-		this.stage.beetleController.open();
+		this.stage.beetleController.enableOverlayMode();
+		this.stage.beetleController.hideStageContent();
+		this.stage.beetleController.showBeetleCoordinatesBar();
 	}
 };
 
@@ -2391,6 +2395,26 @@ IDE_Morph.prototype.fixLayout = function (situation) {
 		this.corralBar.setLeft(this.stage.left());
 		this.corralBar.setTop(this.stage.bottom() + padding);
 		this.corralBar.setWidth(this.stage.width());
+
+		// beetleControlsBar - position below corralBar if it exists
+		if (this.stage.beetleController && this.stage.beetleController.beetleControlsBar) {
+			this.stage.beetleController.beetleControlsBar.setLeft(this.stage.left());
+			this.stage.beetleController.beetleControlsBar.setTop(this.corralBar.bottom() + padding);
+			this.stage.beetleController.beetleControlsBar.setWidth(this.stage.width());
+		}
+
+		// beetleCoordinatesBar - position below beetleControlsBar if it exists and is visible
+		if (this.stage.beetleController && this.stage.beetleController.beetleCoordinatesBar) {
+			this.stage.beetleController.beetleCoordinatesBar.setLeft(this.stage.left());
+			if (this.stage.beetleController.beetleControlsBar && this.stage.beetleController.beetleControlsBar.isVisible) {
+				this.stage.beetleController.beetleCoordinatesBar.setTop(
+					this.stage.beetleController.beetleControlsBar.bottom() + padding * 4
+				);
+			} else {
+				this.stage.beetleController.beetleCoordinatesBar.setTop(this.corralBar.bottom() + padding);
+			}
+			this.stage.beetleController.beetleCoordinatesBar.setWidth(this.stage.width());
+		}
 
 		// corral
 		if (!contains(["selectSprite", "tabEditor"], situation)) {
