@@ -843,7 +843,7 @@ BeetleDialogMorph.prototype.axesEnabled = function () {
 BeetleDialogMorph.prototype.toggleBeetle = function () {
 	var beetle = this.controller.beetle;
 	if (this.beetleEnabled()) {
-		beetle.hide();
+		beetle.hideBeetle();
 	} else {
 		beetle.show();
 	}
@@ -1342,23 +1342,25 @@ Beetle.prototype.stopExtruding = function () {
 	this.controller.changed();
 };
 
-Beetle.prototype.show = function () {
+Beetle.prototype.showBeetle = function () {
 	if (!this.isReady()) {
 		return;
 	}
 
 	var extrusionShapeOutlineVisibility = this.extrusionShapeOutline.visibility;
-	this.body.getChildren().forEach((mesh) => (mesh.visibility = 1));
+	// Show all loaded meshes directly
+	this.loadedMeshes.forEach((mesh) => (mesh.visibility = 1));
 	this.extrusionShapeOutline.visibility = extrusionShapeOutlineVisibility;
 };
 
-Beetle.prototype.hide = function () {
+Beetle.prototype.hideBeetle = function () {
 	if (!this.isReady()) {
 		return;
 	}
 
 	var extrusionShapeOutlineVisibility = this.extrusionShapeOutline.visibility;
-	this.body.getChildren().forEach((mesh) => (mesh.visibility = 0));
+	// Hide all loaded meshes directly
+	this.loadedMeshes.forEach((mesh) => (mesh.visibility = 0));
 	this.extrusionShapeOutline.visibility = extrusionShapeOutlineVisibility;
 };
 
@@ -1495,9 +1497,6 @@ Beetle.prototype.renderArc = function (width, height) {
 	// Get beetle's current position and rotation
 	var beetlePos = this.body.position;
 	var beetleRotationMatrix = this.body.computeWorldMatrix(true);
-
-	// Debug: Log the beetle's internal position
-	console.log("Beetle internal position:", beetlePos);
 
 	// Get thickness from shape scale and extrusion scale
 	var thickness =
@@ -2116,6 +2115,22 @@ SnapExtensions.primitives.set("ananse_translateBy3D(number, dimension)", functio
 		return;
 	}
 	stage.beetleController.beetle.translateBy3D(number, dimension);
+});
+
+SnapExtensions.primitives.set("ananse_hide()", function () {
+	var stage = this.parentThatIsA(StageMorph);
+	if (!stage.beetleController) {
+		return;
+	}
+	stage.beetleController.beetle.hideBeetle();
+});
+
+SnapExtensions.primitives.set("ananse_show()", function () {
+	var stage = this.parentThatIsA(StageMorph);
+	if (!stage.beetleController) {
+		return;
+	}
+	stage.beetleController.beetle.showBeetle();
 });
 
 SnapExtensions.primitives.set("ananse_moveForward(dist)", function (dist) {

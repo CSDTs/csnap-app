@@ -5,12 +5,19 @@ function loadSrc(url) {
 	var url = baseUrl + url;
 	return new Promise((resolve, reject) => {
 		if (contains(SnapExtensions.scripts, url)) {
-			reject();
+			console.log("[beetle init.js] Script already loaded, skipping:", url);
+			resolve(); // Resolve instead of reject to continue the chain
+			return;
 		}
 		scriptElement = document.createElement("script");
 		scriptElement.onload = () => {
 			SnapExtensions.scripts.push(url);
+			console.log("[beetle init.js] Script loaded:", url);
 			resolve();
+		};
+		scriptElement.onerror = (err) => {
+			console.error("[beetle init.js] Script load error:", url, err);
+			reject(err);
 		};
 		document.head.appendChild(scriptElement);
 		scriptElement.src = url;

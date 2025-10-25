@@ -109,7 +109,7 @@
 	},
 	{
 		"fileName": "beetle.xml",
-		"name": "3D Beetle Geometry",
+		"name": "AnanseBot: 3D Beetle Geometry",
 		"description": "Generate 3D geometry by extruding points, lines or polygons along a path in 3D space.",
 		"searchData": [
 			"reset",
@@ -136,7 +136,7 @@
 			"pop position",
 			"beetle view"
 		],
-		"categories": ["3D Beetle"],
+		"categories": ["AnanseBot"],
 		"translations": {
 			"ca": {
 				"name": "Geometria 3D de l'escarbat",

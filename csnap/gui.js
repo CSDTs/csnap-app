@@ -731,8 +731,8 @@ IDE_Morph.prototype.autoLoadExtensions = function () {
 	// experimental - allow auto-loading extensions from urls specified
 	// in global variables whose names start with "__module__".
 	var urls = [];
-	console.log("[autoLoadExtensions] Starting...");
-	console.log("[autoLoadExtensions] Global variables:", Object.keys(this.globalVariables.vars));
+	// console.log("[autoLoadExtensions] Starting...");
+	// console.log("[autoLoadExtensions] Global variables:", Object.keys(this.globalVariables.vars));
 	Object.keys(this.globalVariables.vars).forEach((vName) => {
 		var val;
 		if (vName.startsWith("__module__")) {
@@ -754,22 +754,22 @@ IDE_Morph.prototype.autoLoadExtensions = function () {
 		fullUrl = item.url;
 		if (!item.url.startsWith("http://") && !item.url.startsWith("https://") && !item.url.startsWith("/")) {
 			fullUrl = this.asset_path + item.url;
-			console.log("[autoLoadExtensions] Converted to full URL:", fullUrl);
+			// console.log("[autoLoadExtensions] Converted to full URL:", fullUrl);
 			// Update the global variable with the full path so init.js can use it
 			this.globalVariables.setVar(item.name, fullUrl);
 		}
 
-		console.log("[autoLoadExtensions] enableJS:", Process.prototype.enableJS);
-		console.log("[autoLoadExtensions] Checking URLs:", SnapExtensions.urls);
+		// console.log("[autoLoadExtensions] enableJS:", Process.prototype.enableJS);
+		// console.log("[autoLoadExtensions] Checking URLs:", SnapExtensions.urls);
 		// Check BOTH the original URL and the full URL against the whitelist
 		var urlMatches = SnapExtensions.urls.some((any) => originalUrl.indexOf(any) === 0 || fullUrl.indexOf(any) >= 0);
-		console.log("[autoLoadExtensions] URL matches allowed list?", urlMatches);
+		// console.log("[autoLoadExtensions] URL matches allowed list?", urlMatches);
 
 		if (Process.prototype.enableJS || urlMatches) {
-			console.log("[autoLoadExtensions] Loading script:", fullUrl);
+			// console.log("[autoLoadExtensions] Loading script:", fullUrl);
 			scriptElement = document.createElement("script");
 			scriptElement.onload = () => {
-				console.log("[autoLoadExtensions] Script loaded:", fullUrl);
+				// console.log("[autoLoadExtensions] Script loaded:", fullUrl);
 				// Track both the original and full URL to prevent reloading
 				SnapExtensions.scripts.push(originalUrl);
 				if (fullUrl !== originalUrl) {
@@ -785,36 +785,36 @@ IDE_Morph.prototype.autoLoadExtensions = function () {
 			console.warn("[autoLoadExtensions] Script NOT loaded (security check failed):", item.url);
 		}
 	});
-	console.log("[autoLoadExtensions] Done.");
+	// console.log("[autoLoadExtensions] Done.");
 };
 
 // Reinitialize the beetle controller if the beetle library is loaded
 IDE_Morph.prototype.reinitializeBeetleIfNeeded = function () {
 	// Check if the beetle library module is loaded
 	if (!this.globalVariables.vars["__module__beetle__"]) {
-		console.log("[reinitializeBeetleIfNeeded] Beetle library not loaded");
+		// console.log("[reinitializeBeetleIfNeeded] Beetle library not loaded");
 		return;
 	}
 
-	console.log("[reinitializeBeetleIfNeeded] Beetle library detected");
+	// console.log("[reinitializeBeetleIfNeeded] Beetle library detected");
 
 	// Check if BeetleController constructor exists (beetle.js has loaded)
 	if (typeof BeetleController === "undefined") {
-		console.log("[reinitializeBeetleIfNeeded] BeetleController not yet available, waiting...");
+		// console.log("[reinitializeBeetleIfNeeded] BeetleController not yet available, waiting...");
 		// Beetle.js might still be loading, try again in a moment
 		setTimeout(() => this.reinitializeBeetleIfNeeded(), 100);
 		return;
 	}
 
-	console.log("[reinitializeBeetleIfNeeded] BeetleController available");
+	// console.log("[reinitializeBeetleIfNeeded] BeetleController available");
 
 	// Check if the stage already has a controller
 	if (this.stage.beetleController) {
-		console.log("[reinitializeBeetleIfNeeded] Controller already exists, reopening window");
+		// console.log("[reinitializeBeetleIfNeeded] Controller already exists, reopening window");
 		// Controller exists, just make sure the window is open
 		this.stage.beetleController.open();
 	} else {
-		console.log("[reinitializeBeetleIfNeeded] Creating new controller");
+		// console.log("[reinitializeBeetleIfNeeded] Creating new controller");
 		// Create new controller and open it
 		this.stage.beetleController = new BeetleController(this.stage);
 		this.stage.beetleController.open();
