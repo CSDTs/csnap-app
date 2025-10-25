@@ -2160,6 +2160,62 @@ StageMorph.prototype.userMenu = function () {
 	return menu;
 };
 
+StageMorph.prototype.fancyThumbnail = function (extentPoint, excludedSprite, nonRetina, recycleMe, noWatchers) {
+	// Multiply extent by 2 for higher quality (unless already scaled)
+	var highResExtent = new Point(extentPoint.x * 3, extentPoint.y * 3);
+
+	var src = this.getImage(),
+		scale = Math.min(highResExtent.x / src.width, highResExtent.y / src.height),
+		trg = newCanvas(highResExtent, nonRetina, recycleMe),
+		ctx = trg.getContext("2d"),
+		fb,
+		fimg;
+
+	ctx.save();
+	ctx.scale(scale, scale);
+	ctx.drawImage(src, 0, 0);
+	ctx.drawImage(this.penTrails(), 0, 0, this.dimensions.x * this.scale, this.dimensions.y * this.scale);
+	if (this.projectionSource) {
+		ctx.save();
+		ctx.globalAlpha = 1 - this.projectionTransparency / 100;
+		ctx.drawImage(this.projectionLayer(), 0, 0, this.dimensions.x * this.scale, this.dimensions.y * this.scale);
+		ctx.restore();
+	}
+	this.children.forEach((morph) => {
+		if ((isSnapObject(morph) || !noWatchers) && morph.isVisible && morph !== excludedSprite) {
+			fb = morph.fullBounds();
+			fimg = morph.fullImage();
+			if (fimg.width && fimg.height) {
+				ctx.drawImage(morph.fullImage(), fb.origin.x - this.bounds.origin.x, fb.origin.y - this.bounds.origin.y);
+			}
+		}
+	});
+	ctx.restore();
+	return trg;
+};
+
+// Override thumbnail to use beetle 3D view when beetle library is loaded
+StageMorph.prototype.thumbnail = function (extentPoint, recycleMe, noWatchers) {
+	// Multiply extent by 2 for higher quality
+	var highResExtent = new Point(extentPoint.x * 3, extentPoint.y * 3);
+
+	// Check if beetle library is loaded and beetleController exists
+	if (this.beetleController && typeof this.beetleController.currentView === "function") {
+		// Use beetle's 3D view for the thumbnail
+		var beetleCanvas = this.beetleController.currentView();
+		// Scale the beetle canvas to match the requested extent
+		var scale = Math.min(highResExtent.x / beetleCanvas.width, highResExtent.y / beetleCanvas.height);
+		var trg = newCanvas(highResExtent, false, recycleMe);
+		var ctx = trg.getContext("2d");
+		ctx.save();
+		ctx.scale(scale, scale);
+		ctx.drawImage(beetleCanvas, 0, 0);
+		ctx.restore();
+		return trg;
+	}
+	// Fall back to default behavior - call the original fancyThumbnail method
+	return this.fancyThumbnail(highResExtent, null, false, recycleMe, noWatchers);
+};
 ////////////////////////////////////////////////////////////////
 // Main block overrides
 ////////////////////////////////////////////////////////////////

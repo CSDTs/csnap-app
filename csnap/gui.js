@@ -731,38 +731,94 @@ IDE_Morph.prototype.autoLoadExtensions = function () {
 	// experimental - allow auto-loading extensions from urls specified
 	// in global variables whose names start with "__module__".
 	var urls = [];
+	console.log("[autoLoadExtensions] Starting...");
+	console.log("[autoLoadExtensions] Global variables:", Object.keys(this.globalVariables.vars));
 	Object.keys(this.globalVariables.vars).forEach((vName) => {
 		var val;
 		if (vName.startsWith("__module__")) {
 			val = this.globalVariables.getVar(vName);
 			if (isString(val)) {
+				console.log("[autoLoadExtensions] Found module:", vName, "=", val);
 				urls.push({ name: vName, url: val });
 			}
 		}
 	});
 	urls.forEach((item) => {
-		var scriptElement, fullUrl;
-		if (contains(SnapExtensions.scripts, item.url)) {
-			return;
-		}
+		var scriptElement, fullUrl, originalUrl;
+		console.log("[autoLoadExtensions] Processing:", item.url);
+
+		// Save the original URL for security checking
+		originalUrl = item.url;
 
 		// Prepend asset_path for relative URLs
 		fullUrl = item.url;
 		if (!item.url.startsWith("http://") && !item.url.startsWith("https://") && !item.url.startsWith("/")) {
 			fullUrl = this.asset_path + item.url;
+			console.log("[autoLoadExtensions] Converted to full URL:", fullUrl);
 			// Update the global variable with the full path so init.js can use it
 			this.globalVariables.setVar(item.name, fullUrl);
 		}
 
-		if (Process.prototype.enableJS || SnapExtensions.urls.some((any) => item.url.indexOf(any) === 0)) {
+		console.log("[autoLoadExtensions] enableJS:", Process.prototype.enableJS);
+		console.log("[autoLoadExtensions] Checking URLs:", SnapExtensions.urls);
+		// Check BOTH the original URL and the full URL against the whitelist
+		var urlMatches = SnapExtensions.urls.some((any) => originalUrl.indexOf(any) === 0 || fullUrl.indexOf(any) >= 0);
+		console.log("[autoLoadExtensions] URL matches allowed list?", urlMatches);
+
+		if (Process.prototype.enableJS || urlMatches) {
+			console.log("[autoLoadExtensions] Loading script:", fullUrl);
 			scriptElement = document.createElement("script");
 			scriptElement.onload = () => {
-				SnapExtensions.scripts.push(item.url);
+				console.log("[autoLoadExtensions] Script loaded:", fullUrl);
+				// Track both the original and full URL to prevent reloading
+				SnapExtensions.scripts.push(originalUrl);
+				if (fullUrl !== originalUrl) {
+					SnapExtensions.scripts.push(fullUrl);
+				}
+			};
+			scriptElement.onerror = (err) => {
+				console.error("[autoLoadExtensions] Script load error:", fullUrl, err);
 			};
 			document.head.appendChild(scriptElement);
 			scriptElement.src = fullUrl; // Use fullUrl instead of url
+		} else {
+			console.warn("[autoLoadExtensions] Script NOT loaded (security check failed):", item.url);
 		}
 	});
+	console.log("[autoLoadExtensions] Done.");
+};
+
+// Reinitialize the beetle controller if the beetle library is loaded
+IDE_Morph.prototype.reinitializeBeetleIfNeeded = function () {
+	// Check if the beetle library module is loaded
+	if (!this.globalVariables.vars["__module__beetle__"]) {
+		console.log("[reinitializeBeetleIfNeeded] Beetle library not loaded");
+		return;
+	}
+
+	console.log("[reinitializeBeetleIfNeeded] Beetle library detected");
+
+	// Check if BeetleController constructor exists (beetle.js has loaded)
+	if (typeof BeetleController === "undefined") {
+		console.log("[reinitializeBeetleIfNeeded] BeetleController not yet available, waiting...");
+		// Beetle.js might still be loading, try again in a moment
+		setTimeout(() => this.reinitializeBeetleIfNeeded(), 100);
+		return;
+	}
+
+	console.log("[reinitializeBeetleIfNeeded] BeetleController available");
+
+	// Check if the stage already has a controller
+	if (this.stage.beetleController) {
+		console.log("[reinitializeBeetleIfNeeded] Controller already exists, reopening window");
+		// Controller exists, just make sure the window is open
+		this.stage.beetleController.open();
+	} else {
+		console.log("[reinitializeBeetleIfNeeded] Creating new controller");
+		// Create new controller and open it
+		this.stage.beetleController = new BeetleController(this.stage);
+		this.stage.beetleController.open();
+	}
 };
 
 // Standardize library paths before export to ensure consistent relative paths
@@ -3463,17 +3519,6 @@ IDE_Morph.prototype.openIn = function (world) {
 		return langSetting;
 	}
 
-	if (launcherLangSetting()) {
-		// launch with this non-persisten lang setting
-		this.loadNewProject = true;
-		this.setLanguage(launcherLangSetting(), interpretUrlAnchors, true);
-	} else if (this.userLanguage) {
-		this.loadNewProject = true;
-		this.setLanguage(this.userLanguage, interpretUrlAnchors);
-	} else {
-		interpretUrlAnchors.call(this);
-	}
-
 	// Checks and loads in current project
 	function loadCSDTProject() {
 		if (typeof config !== "undefined") {
@@ -3490,7 +3535,31 @@ IDE_Morph.prototype.openIn = function (world) {
 			}
 		}
 	}
-	loadCSDTProject();
+
+	// Determine if we should load a new project or load the CSDT project
+	var hasProjectToLoad = typeof config !== "undefined" && typeof config.project !== "undefined";
+
+	if (launcherLangSetting()) {
+		// launch with this non-persisten lang setting
+		this.loadNewProject = !hasProjectToLoad;
+		this.setLanguage(
+			launcherLangSetting(),
+			function () {
+				interpretUrlAnchors.call(this);
+				loadCSDTProject();
+			},
+			true
+		);
+	} else if (this.userLanguage) {
+		this.loadNewProject = !hasProjectToLoad;
+		this.setLanguage(this.userLanguage, function () {
+			interpretUrlAnchors.call(this);
+			loadCSDTProject();
+		});
+	} else {
+		interpretUrlAnchors.call(this);
+		loadCSDTProject();
+	}
 
 	if (location.protocol === "file:") {
 		Process.prototype.enableJS = true;
@@ -4504,6 +4573,7 @@ IDE_Morph.prototype.rawOpenProjectString = function (str, noPrims) {
 	this.toggleAppMode(config.presentation !== undefined ? true : false);
 
 	this.autoLoadExtensions();
+	this.reinitializeBeetleIfNeeded();
 	this.stopFastTracking();
 };
 
