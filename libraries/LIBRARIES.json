@@ -1,9 +1,15 @@
 [
 	{
 		"fileName": "ai/nst.xml",
-		"name": "AI",
-		"description": "Get current sprite location and log to console",
-		"searchData": ["get sprite location", "log sprite location to console"],
+		"name": "Neural Style Transfer (NST)",
+		"description": "Apply a 'style' to your selected content image using AI",
+		"searchData": [
+			"nst create image _ _",
+			"nst use costume _ _",
+			"nst use stage _",
+			"nst set parameter _ _",
+			"nst set mode _"
+		],
 		"categories": ["AI"]
 	},
 	{

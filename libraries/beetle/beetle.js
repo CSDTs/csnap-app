@@ -1198,6 +1198,12 @@ BeetleController.prototype.resetCamera = function () {
 };
 
 BeetleController.prototype.exportSTL = function () {
+	// const rotationMatrix = BABYLON.Matrix.RotationX(Math.PI / 2);
+
+	// this.beetleTrails.forEach((mesh) => {
+	// 	mesh.bakeTransformIntoVertices(rotationMatrix);
+	// });
+
 	BABYLON.STLExport.CreateSTL(
 		this.beetleTrails,
 		true, // download
@@ -1208,6 +1214,11 @@ BeetleController.prototype.exportSTL = function () {
 		undefined, // support instanced meshes
 		undefined // exportIndividualMeshes
 	);
+
+	// const inverseMatrix = BABYLON.Matrix.RotationX(-Math.PI / 2);
+	// this.beetleTrails.forEach((mesh) => {
+	// 	mesh.bakeTransformIntoVertices(inverseMatrix);
+	// });
 };
 
 // Toggle methods for beetle controls bar
@@ -2552,6 +2563,7 @@ Beetle.prototype.renderArc = function (width, height) {
 			path: arcPoints,
 			radius: thickness / 2,
 			tessellation: 8,
+			cap: BABYLON.Mesh.CAP_ALL,
 			radiusFunction: function (i, distance) {
 				return thickness / 2; // Constant radius
 			},
