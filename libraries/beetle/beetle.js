@@ -140,8 +140,8 @@ BeetleController.prototype.init = function (stage) {
 	this.axisLabels = {};
 	this.axesEnabledFlag = true;
 
-	this.ghostModeEnabledFlag = false;
-	this.wireframeEnabledFlag = false;
+	this.ghostModeEnabled = false;
+	this.wireframeEnabled = false;
 
 	this.shouldRerender = false;
 	this.renderWidth = 480;
@@ -320,9 +320,8 @@ BABYLON.ArcRotateCamera.prototype.setFPV = function (setIt) {
 	if (setIt) {
 		this.saveViewpoint();
 		this.parent = this.controller.beetle.body;
-		this.position = new BABYLON.Vector3(0, 0, -0.5); // Z is vertical, so -0.5 moves back along Z
+		this.position = new BABYLON.Vector3(0, 0, -0.5);
 		this.target = new BABYLON.Vector3(0, 0, 0);
-		this.upVector = new BABYLON.Vector3(0, 0, 1); // Z-up coordinate system
 		this.lowerRadiusLimit = 0.5;
 		this.radius = 0.5;
 		this.light.specular = new BABYLON.Color3.Black();
@@ -715,10 +714,10 @@ BeetleController.prototype.createBeetleCoordinatesBar = function () {
 		return controller.extrusionBaseEnabled();
 	};
 	var wireframeQuery = function () {
-		return controller.wireframeEnabledFlag;
+		return controller.wireframeEnabled;
 	};
 	var ghostModeQuery = function () {
-		return controller.ghostModeEnabledFlag;
+		return controller.ghostModeEnabled;
 	};
 	var fpvQuery = function () {
 		return controller.fpvEnabled();
@@ -901,7 +900,7 @@ BeetleController.prototype.createBeetleCoordinatesBar = function () {
 		ide.frameColor.darker(ide.buttonContrast)
 	);
 	var shapeScaleLabel = new StringMorph(
-		"Shape: 1",
+		"Shape:        1",
 		12,
 		"sans-serif",
 		true,
@@ -911,7 +910,7 @@ BeetleController.prototype.createBeetleCoordinatesBar = function () {
 		ide.frameColor.darker(ide.buttonContrast)
 	);
 	var movementScaleLabel = new StringMorph(
-		"Movement: 1",
+		"Movement:        1",
 		12,
 		"sans-serif",
 		true,
@@ -1155,6 +1154,19 @@ BeetleController.prototype.hideBeetleCoordinatesBar = function () {
 	}
 };
 
+BeetleController.prototype.refreshBeetleControlsBar = function () {
+	if (!this.beetleControlsBar) {
+		return;
+	}
+
+	// Iterate through children of beetleControlsBar and refresh them if they have a refresh method
+	this.beetleControlsBar.children.forEach((morph) => {
+		if (morph.refresh) {
+			morph.refresh();
+		}
+	});
+};
+
 // Button functionality methods for beetle coordinates bar
 BeetleController.prototype.adjustGridSize = function () {
 	var currentSize = this.grid.scaling.x * 400; // Current actual size
@@ -1277,25 +1289,25 @@ BeetleController.prototype.extrusionBaseEnabled = function () {
 };
 
 BeetleController.prototype.toggleWireframe = function () {
-	this.wireframeEnabledFlag = !this.wireframeEnabledFlag;
+	this.wireframeEnabled = !this.wireframeEnabled;
 	this.beetleTrails.forEach((object) => {
-		object.material.wireframe = this.wireframeEnabledFlag;
+		object.material.wireframe = this.wireframeEnabled;
 	});
 	this.changed();
 };
 
 BeetleController.prototype.wireframeEnabled = function () {
-	return this.wireframeEnabledFlag;
+	return this.wireframeEnabled;
 };
 
 BeetleController.prototype.toggleGhostMode = function () {
-	this.ghostModeEnabledFlag = !this.ghostModeEnabledFlag;
-	this.beetleTrails.forEach((object) => (object.visibility = this.ghostModeEnabledFlag ? 0.25 : 1));
+	this.ghostModeEnabled = !this.ghostModeEnabled;
+	this.beetleTrails.forEach((object) => (object.visibility = this.ghostModeEnabled ? 0.25 : 1));
 	this.changed();
 };
 
 BeetleController.prototype.ghostModeEnabled = function () {
-	return this.ghostModeEnabledFlag;
+	return this.ghostModeEnabled;
 };
 
 BeetleController.prototype.toggleFPV = function () {
@@ -1959,6 +1971,9 @@ Beetle.prototype.init = function (controller) {
 	this.shape.parent = this.body;
 	this.axisLines = {};
 
+	// Initialize beetle scale to 1 (default size)
+	this.body.scaling = new BABYLON.Vector3(1, 1, 1);
+
 	// this.shape.rotation.y = Math.PI / 2; // radians(90)
 
 	// extrusion
@@ -2043,18 +2058,25 @@ Beetle.prototype.loadMeshes = function (modelName) {
 					this.wings = meshes[0];
 
 					// Apply pending color if one was set before wings loaded
-					if (this.pendingColor) {
+					if (this.pendingColor && this.wings) {
 						this.wings.material.diffuseColor = new BABYLON.Color3(
 							this.pendingColor.r / 255,
 							this.pendingColor.g / 255,
 							this.pendingColor.b / 255
 						);
+						this.pendingColor = null; // Clear after applying
 					} else {
 						// Otherwise initialize from current sprite color
 						this.initColor();
 					}
 
 					this.controller.changed();
+				}
+
+				if (modelName === "stork" && (each === "gray" || each === "black")) {
+					meshes.forEach((mesh) => {
+						mesh.visibility = 0;
+					});
 				}
 			}
 		)
@@ -2082,14 +2104,30 @@ Beetle.prototype.isReady = function () {
 	return this.body && this.loadedMeshes.length > 0;
 };
 
+// Helper method to safely get material color
+Beetle.prototype.getMaterialColor = function () {
+	if (this.wings && this.wings.material && this.wings.material.diffuseColor) {
+		return this.wings.material.diffuseColor;
+	}
+
+	if (this.pendingColor) {
+		return new BABYLON.Color3(this.pendingColor.r / 255, this.pendingColor.g / 255, this.pendingColor.b / 255);
+	}
+	// Return default white color if wings/material not available
+	return new BABYLON.Color3(1, 1, 1);
+};
+
 // Switch to a different model
 Beetle.prototype.switchModel = function (modelName) {
 	if (this.currentModel === modelName) {
 		return; // Already using this model
 	}
 
-	// Clear existing meshes
+	// Clear existing meshes before loading new ones
 	this.clearMeshes();
+
+	// Reset wings reference - it will be set when new meshes load
+	this.wings = null;
 
 	// Load new model
 	this.loadMeshes(modelName);
@@ -2238,7 +2276,7 @@ Beetle.prototype.extrudePoint = function () {
 		},
 		this.controller.scene
 	);
-	this.lineTrail.color = this.wings.material.diffuseColor.clone();
+	this.lineTrail.color = this.getMaterialColor().clone();
 	this.lineTrail.points = points;
 	this.controller.beetleTrails.push(this.lineTrail);
 };
@@ -2268,7 +2306,7 @@ Beetle.prototype.extrudePolygon = function () {
 			custom: { vertex: vertices, face: faces },
 			sideOrientation: isVolume ? BABYLON.Mesh.FRONTSIDE : BABYLON.Mesh.DOUBLESIDE,
 		});
-		prism.material = BeetleController.Cache.getMaterial(this.wings.material.diffuseColor);
+		prism.material = BeetleController.Cache.getMaterial(this.getMaterialColor());
 		prism.material.backFaceCulling = false;
 		prism.material.wireframe = this.controller.wireframeEnabled;
 		prism.visibility = this.controller.ghostModeEnabled ? 0.25 : 1;
@@ -2303,7 +2341,7 @@ Beetle.prototype.computeExtrusionCaps = function (currentTransformMatrix) {
 			},
 			this.controller.scene
 		);
-		backCap.material = BeetleController.Cache.getMaterial(this.wings.material.diffuseColor);
+		backCap.material = BeetleController.Cache.getMaterial(this.getMaterialColor());
 		backCap.material.wireframe = this.controller.wireframeEnabled;
 		backCap.visibility = this.controller.ghostModeEnabled ? 0.25 : 1;
 		this.controller.beetleTrails.push(backCap);
@@ -2321,7 +2359,7 @@ Beetle.prototype.computeExtrusionCaps = function (currentTransformMatrix) {
 		this.controller.scene
 	);
 
-	frontCap.material = BeetleController.Cache.getMaterial(this.wings.material.diffuseColor);
+	frontCap.material = BeetleController.Cache.getMaterial(this.getMaterialColor());
 	frontCap.material.wireframe = this.controller.wireframeEnabled;
 	frontCap.visibility = this.controller.ghostModeEnabled ? 0.25 : 1;
 	this.controller.beetleTrails.push(frontCap);
@@ -2491,6 +2529,18 @@ Beetle.prototype.setScale = function (scale, which) {
 	}
 };
 
+Beetle.prototype.setBeetleScale = function (scale) {
+	// Scale the beetle model itself (uniform scaling)
+	var uniformScale = Number(scale);
+	this.body.scaling = new BABYLON.Vector3(uniformScale, uniformScale, uniformScale);
+	this.controller.changed();
+};
+
+Beetle.prototype.getBeetleScale = function () {
+	// Return the current scale of the beetle (assumes uniform scaling)
+	return this.body.scaling.x;
+};
+
 Beetle.prototype.setOffset = function (offset) {
 	this.shapeOffset.x = Number(offset[0]);
 	this.shapeOffset.y = Number(offset[1]);
@@ -2572,7 +2622,7 @@ Beetle.prototype.renderArc = function (width, height) {
 	);
 
 	// Apply beetle's color
-	var material = BeetleController.Cache.getMaterial(this.wings.material.diffuseColor);
+	var material = BeetleController.Cache.getMaterial(this.getMaterialColor());
 	arcTube.material = material;
 	arcTube.material.wireframe = this.controller.wireframeEnabled;
 	arcTube.visibility = this.controller.ghostModeEnabled ? 0.25 : 1;
@@ -2637,7 +2687,7 @@ Beetle.prototype.renderTorus = function (width, length) {
 	);
 
 	// Apply beetle's color
-	var material = BeetleController.Cache.getMaterial(this.wings.material.diffuseColor);
+	var material = BeetleController.Cache.getMaterial(this.getMaterialColor());
 	torusTube.material = material;
 	torusTube.material.wireframe = this.controller.wireframeEnabled;
 	torusTube.visibility = this.controller.ghostModeEnabled ? 0.25 : 1;
@@ -2676,7 +2726,7 @@ Beetle.prototype.renderSphere = function (radius) {
 	}
 
 	// Apply beetle's color
-	var material = BeetleController.Cache.getMaterial(this.wings.material.diffuseColor);
+	var material = BeetleController.Cache.getMaterial(this.getMaterialColor());
 	sphere.material = material;
 	sphere.material.wireframe = this.controller.wireframeEnabled;
 	sphere.visibility = this.controller.ghostModeEnabled ? 0.25 : 1;
@@ -2712,7 +2762,7 @@ Beetle.prototype.renderBox = function (width, height, depth) {
 	}
 
 	// Apply beetle's color
-	var material = BeetleController.Cache.getMaterial(this.wings.material.diffuseColor);
+	var material = BeetleController.Cache.getMaterial(this.getMaterialColor());
 	box.material = material;
 	box.material.wireframe = this.controller.wireframeEnabled;
 	box.visibility = this.controller.ghostModeEnabled ? 0.25 : 1;
@@ -2749,7 +2799,7 @@ Beetle.prototype.renderCylinder = function (top, bottom, height) {
 	}
 
 	// Apply beetle's color
-	var material = BeetleController.Cache.getMaterial(this.wings.material.diffuseColor);
+	var material = BeetleController.Cache.getMaterial(this.getMaterialColor());
 	cylinder.material = material;
 	cylinder.material.wireframe = this.controller.wireframeEnabled;
 	cylinder.visibility = this.controller.ghostModeEnabled ? 0.25 : 1;
@@ -2789,7 +2839,7 @@ Beetle.prototype.renderTorusKnot = function (radius, tube, p, q, heightScale) {
 	}
 
 	// Apply beetle's color
-	var material = BeetleController.Cache.getMaterial(this.wings.material.diffuseColor);
+	var material = BeetleController.Cache.getMaterial(this.getMaterialColor());
 	torusKnot.material = material;
 	torusKnot.material.wireframe = this.controller.wireframeEnabled;
 	torusKnot.visibility = this.controller.ghostModeEnabled ? 0.25 : 1;
@@ -2852,6 +2902,7 @@ Beetle.prototype.rotateCamera = function (degrees, axis) {
 
 Beetle.prototype.zoomToFit = function () {
 	this.controller.dialog.zoomToFit();
+	this.controller.refreshBeetleControlsBar();
 };
 
 Beetle.prototype.toggleBeetleVisibility = function () {
@@ -3216,4 +3267,20 @@ SnapExtensions.primitives.set("bb_resetCameraToInitial()", function () {
 		return;
 	}
 	stage.beetleController.beetle.resetCameraToInitial();
+});
+
+SnapExtensions.primitives.set("bb_setBeetleScale(scale)", function (scale) {
+	var stage = this.parentThatIsA(StageMorph);
+	if (!stage.beetleController) {
+		return;
+	}
+	stage.beetleController.beetle.setBeetleScale(scale);
+});
+
+SnapExtensions.primitives.set("bb_beetleScale()", function () {
+	var stage = this.parentThatIsA(StageMorph);
+	if (!stage.beetleController) {
+		return 1;
+	}
+	return stage.beetleController.beetle.getBeetleScale();
 });

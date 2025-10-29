@@ -775,6 +775,15 @@ IDE_Morph.prototype.autoLoadExtensions = function () {
 				if (fullUrl !== originalUrl) {
 					SnapExtensions.scripts.push(fullUrl);
 				}
+
+				// If this is the beetle init script, wait for beetle.js to load and then reinitialize
+				if (item.name === "__module__beetle__") {
+					// console.log("[autoLoadExtensions] Beetle init loaded, waiting for beetle.js...");
+					// Give beetle.js time to load (it's loaded by init.js)
+					setTimeout(() => {
+						this.reinitializeBeetleIfNeeded();
+					}, 500);
+				}
 			};
 			scriptElement.onerror = (err) => {
 				console.error("[autoLoadExtensions] Script load error:", fullUrl, err);
@@ -4597,6 +4606,9 @@ IDE_Morph.prototype.rawOpenProjectString = function (str, noPrims) {
 	this.toggleAppMode(config.presentation !== undefined ? true : false);
 
 	this.autoLoadExtensions();
+	// Note: reinitializeBeetleIfNeeded() is now called after beetle scripts load
+	// (see autoLoadExtensions onload handler for __module__beetle__)
+	// Still call it here as a fallback if beetle is already loaded
 	this.reinitializeBeetleIfNeeded();
 	this.stopFastTracking();
 };
