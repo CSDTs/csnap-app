@@ -201,6 +201,28 @@
 		}
 	},
 	{
+		"fileName": "print3d.xml",
+		"name": "3D Print your Drawing",
+		"description": "Turn your 2D stage drawing into a 3D-printable STL file — as a solid model, an Adinkra-style stamp, or a cookie cutter.",
+		"searchData": [
+			"3D print info",
+			"export drawing as STL: width _ mm tall _ mm style _",
+			"capture drawing from _",
+			"set print style to _",
+			"set print _ to _ mm",
+			"set smoothness to _",
+			"download STL as _",
+			"set print region to x _ y _ width _ height _",
+			"open 3D print preview",
+			"3d print",
+			"stl",
+			"stamp",
+			"cookie cutter",
+			"adinkra"
+		],
+		"categories": ["pen", "other"]
+	},
+	{
 		"fileName": "embroidery_module.xml",
 		"name": "Embroidery",
 		"description": "Generate embroidery files for stitching pen trails on a sewing machine, experimental and under construction.",
