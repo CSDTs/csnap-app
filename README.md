@@ -68,17 +68,27 @@ to `libraries/LIBRARIES.json`.
 
 Since this is a fork of Snap!, we made it easy to upgrade to the latest Snap! version.
 
-1. Make sure any existing changes are committed or stashed (the subtree pull requires a
+1. **Run the compatibility checker first** (requires `npm install` once):
+   `npm run check-upgrade:against master` — it compares our `csnap/` overrides,
+   libraries, and `index.html` against the pending Snap! version *before* anything is
+   pulled, and writes a report to `upgrade-reports/` with per-method upstream diffs,
+   proposed three-way merges, a visual-review checklist, and similar-feature alerts.
+   See `utilities/upgrade-check/README.md` for details. (`npm run check-upgrade` with no
+   ref self-checks the current tree at any time.)
+2. Make sure any existing changes are committed or stashed (the subtree pull requires a
    clean working tree).
-2. Run `utilities/update-csnap.sh` to update the `snap/` subtree to the latest Snap!
+3. Run `utilities/update-csnap.sh` to update the `snap/` subtree to the latest Snap!
    version.
-3. Re-sync the libraries from the subtree into the `libraries/` folder using
+4. Re-sync the libraries from the subtree into the `libraries/` folder using
    `utilities/copy-libraries.sh` (or `utilities/migrate-libraries.sh`). Do **not** overwrite
-   existing custom libraries like `beetle`, `csdt`, and `ai`.
-4. Reconcile the `csnap/` overrides. Upstream may have changed methods we override, making
-   our patches obsolete — check the subtree changes and update `csnap/` while preserving our
-   customizations.
-5. Make sure `sw.js` and `index.html` are updated as well.
+   existing custom libraries like `beetle`, `csdt`, and `ai`. The checker's report lists
+   which library files are safe to recopy and which need a manual merge.
+5. Reconcile the `csnap/` overrides using the report: apply the proposals in `merged/`
+   (review conflicts marked with `<<<<<<<`), then work through the visual-review and
+   post-pull checklists (including `?version=` bumps in `index.html`).
+6. Make sure `sw.js` and `index.html` are updated as well.
+7. Re-run `npm run check-upgrade` until clean, and add any new intentional custom
+   methods to `utilities/upgrade-check/known-custom.json` (`--write-known-custom`).
 
 ## Notes / quirks
 
