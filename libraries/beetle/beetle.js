@@ -287,8 +287,8 @@ BABYLON.ArcRotateCamera.prototype.rotateBy = function (deltaXY) {
 		if (this.clickOrigin) {
 			var deltaX = deltaXY.x - this.clickOrigin.x,
 				deltaY = deltaXY.y - this.clickOrigin.y;
-			this.inertialAlphaOffset = deltaX * -0.0005;
-			this.inertialBetaOffset = deltaY * -0.001;
+			this.inertialAlphaOffset = deltaX * -0.000125;
+			this.inertialBetaOffset = deltaY * -0.00025;
 		}
 		this.framing = false;
 	}
@@ -1954,8 +1954,8 @@ function Beetle(controller) {
 Beetle.prototype.init = function (controller) {
 	this.controller = controller;
 
-	this.name = "beetle";
-	this.currentModel = "beetle"; // Track current model
+	this.name = "ananse";
+	this.currentModel = "ananse"; // Track current model
 	this.pendingColor = null; // Store color if set before model loads
 
 	this.shapeScale = new BABYLON.Vector2(1, 1);
@@ -1963,7 +1963,7 @@ Beetle.prototype.init = function (controller) {
 	this.movementScale = 1;
 	this.extrusionScale = new BABYLON.Vector3(1, 1, 1);
 
-	this.loadMeshes("beetle");
+	this.loadMeshes("ananse");
 	this.wings = null;
 	this.loadedMeshes = []; // Track loaded meshes for cleanup
 	this.body = new BABYLON.TransformNode("body", this.controller.scene);
@@ -2073,7 +2073,7 @@ Beetle.prototype.loadMeshes = function (modelName) {
 					this.controller.changed();
 				}
 
-				if (modelName === "stork" && (each === "gray" || each === "black")) {
+				if ((modelName === "stork" || modelName === "ananse") && (each === "gray" || each === "black")) {
 					meshes.forEach((mesh) => {
 						mesh.visibility = 0;
 					});
