@@ -1,0 +1,972 @@
+{
+  "entries": {
+    "Cloud.prototype.createProject": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "create",
+        "project"
+      ]
+    },
+    "Cloud.prototype.dataURItoBlob": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "data",
+        "ito",
+        "blob"
+      ]
+    },
+    "Cloud.prototype.getCSRFToken": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "get",
+        "csrf",
+        "token"
+      ]
+    },
+    "Cloud.prototype.getClassroomList": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "get",
+        "classroom",
+        "list"
+      ]
+    },
+    "Cloud.prototype.originalInit": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "original",
+        "init"
+      ]
+    },
+    "Cloud.prototype.saveFile": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "save",
+        "file"
+      ]
+    },
+    "Cloud.prototype.updateURL": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "update",
+        "url"
+      ]
+    },
+    "Costume.prototype.getNoFit": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "get",
+        "fit"
+      ]
+    },
+    "Costume.prototype.noFit": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "fit"
+      ]
+    },
+    "DialogBoxMorph.prototype.promptForSTLParameters": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "prompt",
+        "for",
+        "stl",
+        "parameters"
+      ]
+    },
+    "IDE_Morph.prototype.disableSinglePalette": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "disable",
+        "single",
+        "palette"
+      ]
+    },
+    "IDE_Morph.prototype.disableTutorialTabs": {
+      "note": "auto-bootstrapped",
+      "feature": "tutorial-mode",
+      "keywords": [
+        "disable",
+        "tutorial",
+        "tabs"
+      ]
+    },
+    "IDE_Morph.prototype.displayTutorialBlocks": {
+      "note": "auto-bootstrapped",
+      "feature": "tutorial-mode",
+      "keywords": [
+        "display",
+        "tutorial",
+        "blocks"
+      ]
+    },
+    "IDE_Morph.prototype.enableSinglePalette": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "enable",
+        "single",
+        "palette"
+      ]
+    },
+    "IDE_Morph.prototype.enableTutorialTabs": {
+      "note": "auto-bootstrapped",
+      "feature": "tutorial-mode",
+      "keywords": [
+        "enable",
+        "tutorial",
+        "tabs"
+      ]
+    },
+    "IDE_Morph.prototype.exportAsSTL": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "export",
+        "stl"
+      ]
+    },
+    "IDE_Morph.prototype.exportAsSTLClientSide": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "export",
+        "stl",
+        "client",
+        "side"
+      ]
+    },
+    "IDE_Morph.prototype.exportAsSTLServerSide": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "export",
+        "stl",
+        "server",
+        "side"
+      ]
+    },
+    "IDE_Morph.prototype.initTutorial": {
+      "note": "auto-bootstrapped",
+      "feature": "tutorial-mode",
+      "keywords": [
+        "init",
+        "tutorial"
+      ]
+    },
+    "IDE_Morph.prototype.launchSTLParamsPrompt": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "launch",
+        "stl",
+        "params",
+        "prompt"
+      ]
+    },
+    "IDE_Morph.prototype.loadCustomXML": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "load",
+        "custom",
+        "xml"
+      ]
+    },
+    "IDE_Morph.prototype.loadTutorial": {
+      "note": "auto-bootstrapped",
+      "feature": "tutorial-mode",
+      "keywords": [
+        "load",
+        "tutorial"
+      ]
+    },
+    "IDE_Morph.prototype.originalExportProject": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "original",
+        "export",
+        "project"
+      ]
+    },
+    "IDE_Morph.prototype.originalExportProjectAsCloudData": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "original",
+        "export",
+        "project",
+        "cloud",
+        "data"
+      ]
+    },
+    "IDE_Morph.prototype.originalExportProjectMedia": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "original",
+        "export",
+        "project",
+        "media"
+      ]
+    },
+    "IDE_Morph.prototype.originalExportProjectNoMedia": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "original",
+        "export",
+        "project",
+        "media"
+      ]
+    },
+    "IDE_Morph.prototype.originalInit": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "original",
+        "init"
+      ]
+    },
+    "IDE_Morph.prototype.originalSaveAsProjectToCloud": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "original",
+        "save",
+        "project",
+        "cloud"
+      ]
+    },
+    "IDE_Morph.prototype.originalSaveProjectToCloud": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "original",
+        "save",
+        "project",
+        "cloud"
+      ]
+    },
+    "IDE_Morph.prototype.reinitializeBeetleIfNeeded": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "reinitialize",
+        "beetle",
+        "needed"
+      ]
+    },
+    "IDE_Morph.prototype.saveAsProjectToCloud": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "save",
+        "project",
+        "cloud"
+      ]
+    },
+    "IDE_Morph.prototype.standardizeLibraryPaths": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "standardize",
+        "library",
+        "paths"
+      ]
+    },
+    "IDE_Morph.prototype.toggleControls": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "toggle",
+        "controls"
+      ]
+    },
+    "IDE_Morph.prototype.toggleTutorialMode": {
+      "note": "auto-bootstrapped",
+      "feature": "tutorial-mode",
+      "keywords": [
+        "toggle",
+        "tutorial",
+        "mode"
+      ]
+    },
+    "IDE_Morph.prototype.updateCorralCoordinates": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "update",
+        "corral",
+        "coordinates"
+      ]
+    },
+    "ListMorph.prototype.deactivateIndex": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "deactivate",
+        "index"
+      ]
+    },
+    "Process.prototype.setScaleGlide": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "set",
+        "scale",
+        "glide"
+      ]
+    },
+    "ProjectDialogMorph.prototype.classroomList": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "classroom",
+        "list"
+      ]
+    },
+    "ProjectDialogMorph.prototype.classroomListField": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "classroom",
+        "list",
+        "field"
+      ]
+    },
+    "ProjectDialogMorph.prototype.fixClassRoomItemColors": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "fix",
+        "class",
+        "room",
+        "item",
+        "colors"
+      ]
+    },
+    "ProjectDialogMorph.prototype.installCloudClassroomList": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "install",
+        "cloud",
+        "classroom",
+        "list"
+      ]
+    },
+    "ProjectDialogMorph.prototype.originalInit": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "original",
+        "init"
+      ]
+    },
+    "ProjectDialogMorph.prototype.saveAsCloudProject": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "save",
+        "cloud",
+        "project"
+      ]
+    },
+    "SnapExtensions.originalUrls": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "original",
+        "urls"
+      ]
+    },
+    "SnapExtensions.urls": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "urls"
+      ]
+    },
+    "SpriteMorph.prototype.borderPathLengthHelp": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "border",
+        "path",
+        "length",
+        "help"
+      ]
+    },
+    "SpriteMorph.prototype.changeBorderShade": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "change",
+        "border",
+        "shade"
+      ]
+    },
+    "SpriteMorph.prototype.changeCostumeShade": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "change",
+        "costume",
+        "shade"
+      ]
+    },
+    "SpriteMorph.prototype.changeHue": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "change",
+        "hue"
+      ]
+    },
+    "SpriteMorph.prototype.degreesToRadians": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "degrees",
+        "radians"
+      ]
+    },
+    "SpriteMorph.prototype.doSetScaleFactor": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "set",
+        "scale",
+        "factor"
+      ]
+    },
+    "SpriteMorph.prototype.drawBorderedLine": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "draw",
+        "bordered",
+        "line"
+      ]
+    },
+    "SpriteMorph.prototype.drawCircle": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "draw",
+        "circle"
+      ]
+    },
+    "SpriteMorph.prototype.drawLimitedTanu": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "draw",
+        "limited",
+        "tanu"
+      ]
+    },
+    "SpriteMorph.prototype.drawLogSpiral": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "draw",
+        "log",
+        "spiral"
+      ]
+    },
+    "SpriteMorph.prototype.drawTanu": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "draw",
+        "tanu"
+      ]
+    },
+    "SpriteMorph.prototype.exportAsCSV": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "export",
+        "csv"
+      ]
+    },
+    "SpriteMorph.prototype.flatLineEnds": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "flat",
+        "line",
+        "ends"
+      ]
+    },
+    "SpriteMorph.prototype.flip": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "flip"
+      ]
+    },
+    "SpriteMorph.prototype.flipHorizontal": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "flip",
+        "horizontal"
+      ]
+    },
+    "SpriteMorph.prototype.flipVertical": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "flip",
+        "vertical"
+      ]
+    },
+    "SpriteMorph.prototype.getAngle": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "get",
+        "angle"
+      ]
+    },
+    "SpriteMorph.prototype.getBorderHue": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "get",
+        "border",
+        "hue"
+      ]
+    },
+    "SpriteMorph.prototype.getBorderShade": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "get",
+        "border",
+        "shade"
+      ]
+    },
+    "SpriteMorph.prototype.getBorderSize": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "get",
+        "border",
+        "size"
+      ]
+    },
+    "SpriteMorph.prototype.getBorderState": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "get",
+        "border",
+        "state"
+      ]
+    },
+    "SpriteMorph.prototype.getPenBorderAttribute": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "get",
+        "pen",
+        "border",
+        "attribute"
+      ]
+    },
+    "SpriteMorph.prototype.initArduinoBlocks": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "init",
+        "arduino",
+        "blocks"
+      ]
+    },
+    "SpriteMorph.prototype.isVariableNameInUse": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "variable",
+        "name",
+        "use"
+      ]
+    },
+    "SpriteMorph.prototype.legacySetCostumeColor": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "legacy",
+        "set",
+        "costume",
+        "color"
+      ]
+    },
+    "SpriteMorph.prototype.newSizeOfCurrent": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "new",
+        "size",
+        "current"
+      ]
+    },
+    "SpriteMorph.prototype.originalBlockColor": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "original",
+        "block",
+        "color"
+      ]
+    },
+    "SpriteMorph.prototype.originalBlockTemplates": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "original",
+        "block",
+        "templates"
+      ]
+    },
+    "SpriteMorph.prototype.originalCategories": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "original",
+        "categories"
+      ]
+    },
+    "SpriteMorph.prototype.originalFreshPalette": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "original",
+        "fresh",
+        "palette"
+      ]
+    },
+    "SpriteMorph.prototype.originalInit": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "original",
+        "init"
+      ]
+    },
+    "SpriteMorph.prototype.originalInitBlockMigrations": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "original",
+        "init",
+        "block",
+        "migrations"
+      ]
+    },
+    "SpriteMorph.prototype.originalInitBlocks": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "original",
+        "init",
+        "blocks"
+      ]
+    },
+    "SpriteMorph.prototype.originalPrimitiveBlocks": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "original",
+        "primitive",
+        "blocks"
+      ]
+    },
+    "SpriteMorph.prototype.originanInit": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "originan",
+        "init"
+      ]
+    },
+    "SpriteMorph.prototype.pointAtAngle": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "point",
+        "angle"
+      ]
+    },
+    "SpriteMorph.prototype.preInitBlocks": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "pre",
+        "init",
+        "blocks"
+      ]
+    },
+    "SpriteMorph.prototype.primitiveArduinoBlocks": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "primitive",
+        "arduino",
+        "blocks"
+      ]
+    },
+    "SpriteMorph.prototype.printList": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "print",
+        "list"
+      ]
+    },
+    "SpriteMorph.prototype.radiansToDegrees": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "radians",
+        "degrees"
+      ]
+    },
+    "SpriteMorph.prototype.reflectXAxis": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "reflect",
+        "axis"
+      ]
+    },
+    "SpriteMorph.prototype.reflectYAxis": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "reflect",
+        "axis"
+      ]
+    },
+    "SpriteMorph.prototype.rotateByDegrees": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "rotate",
+        "degrees"
+      ]
+    },
+    "SpriteMorph.prototype.setBorder": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "set",
+        "border"
+      ]
+    },
+    "SpriteMorph.prototype.setBorderHue": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "set",
+        "border",
+        "hue"
+      ]
+    },
+    "SpriteMorph.prototype.setBorderShade": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "set",
+        "border",
+        "shade"
+      ]
+    },
+    "SpriteMorph.prototype.setBorderSize": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "set",
+        "border",
+        "size"
+      ]
+    },
+    "SpriteMorph.prototype.setCostumeShade": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "set",
+        "costume",
+        "shade"
+      ]
+    },
+    "SpriteMorph.prototype.smoothBorders": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "smooth",
+        "borders"
+      ]
+    },
+    "SpriteMorph.prototype.translatePercent": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "translate",
+        "percent"
+      ]
+    },
+    "StageMorph.prototype.basicLayout": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "basic",
+        "layout"
+      ]
+    },
+    "StageMorph.prototype.changeBlocks": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "change",
+        "blocks"
+      ]
+    },
+    "StageMorph.prototype.decategorize": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "decategorize"
+      ]
+    },
+    "StageMorph.prototype.enableGlide": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "enable",
+        "glide"
+      ]
+    },
+    "StageMorph.prototype.hideCostumesTab": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "hide",
+        "costumes",
+        "tab"
+      ]
+    },
+    "StageMorph.prototype.hideSoundsTab": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "hide",
+        "sounds",
+        "tab"
+      ]
+    },
+    "StageMorph.prototype.originalFreshPalette": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "original",
+        "fresh",
+        "palette"
+      ]
+    },
+    "StageMorph.prototype.tutorial": {
+      "note": "auto-bootstrapped",
+      "feature": "tutorial-mode",
+      "keywords": [
+        "tutorial"
+      ]
+    },
+    "createFileFromStage": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "create",
+        "file",
+        "from",
+        "stage"
+      ]
+    },
+    "createLabelInput": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "create",
+        "label",
+        "input"
+      ]
+    },
+    "createText": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "create",
+        "text"
+      ]
+    },
+    "dataURItoBlob": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "data",
+        "ito",
+        "blob"
+      ]
+    },
+    "downloadSTL": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "download",
+        "stl"
+      ]
+    },
+    "imageToSTL": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "image",
+        "stl"
+      ]
+    },
+    "imageToSTLFromCanvas": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "image",
+        "stl",
+        "from",
+        "canvas"
+      ]
+    },
+    "requestSTLConversion": {
+      "note": "auto-bootstrapped",
+      "feature": null,
+      "keywords": [
+        "request",
+        "stl",
+        "conversion"
+      ]
+    }
+  }
+}

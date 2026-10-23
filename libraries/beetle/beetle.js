@@ -470,7 +470,9 @@ BeetleController.prototype.render = function () {
 	if ((this.scene && this.shouldRerender) || this.camera.isMoving()) {
 		this.scene.render();
 		if (this.fullScreenMode) {
-			world.changed();
+			// renderView lives directly in the world while in full screen,
+			// so only it needs redrawing, not the whole IDE
+			this.dialog.renderView.changed();
 		} else if (this.overlayMode) {
 			if (this.stageOverlay) {
 				this.stageOverlay.changed();
@@ -478,9 +480,12 @@ BeetleController.prototype.render = function () {
 		} else {
 			this.dialog.changed();
 		}
-		if (this.firstTimeOpenCount > 5) {
-			this.shouldRerender = false;
+		// keep rendering for a few frames after opening (for stupid Chrome)
+		// and until async assets (meshes, textures) have finished loading
+		if (this.firstTimeOpenCount <= 5) {
 			this.firstTimeOpenCount += 1;
+		} else if (this.scene.isReady()) {
+			this.shouldRerender = false;
 		}
 	}
 };
@@ -568,6 +573,57 @@ BeetleController.prototype.toggleOverlayMode = function () {
 	}
 };
 
+// Tear down everything this controller added to the IDE and release the
+// Babylon engine. Called when the stage that owns it is discarded (e.g. when
+// another project is opened), since the bars live in the IDE, not the stage.
+BeetleController.prototype.destroy = function () {
+	if (this.isDestroyed) return;
+	this.isDestroyed = true;
+
+	if (this.beetleControlsBar) {
+		this.beetleControlsBar.destroy();
+		this.beetleControlsBar = null;
+	}
+	if (this.beetleCoordinatesBar) {
+		this.beetleCoordinatesBar.destroy();
+		this.beetleCoordinatesBar = null;
+	}
+
+	if (this.stageOverlay) {
+		if (this.stageOverlay.originalSetExtent) {
+			this.stage.setExtent = this.stageOverlay.originalSetExtent;
+		}
+		this.stageOverlay.destroy();
+		this.stageOverlay = null;
+	}
+	if (this.stage.originalDrawOn) {
+		this.stage.drawOn = this.stage.originalDrawOn;
+		this.stage.originalDrawOn = null;
+	}
+	this.overlayMode = false;
+
+	if (this.dialog) {
+		if (this.fullScreenMode) {
+			this.dialog.renderView.destroy();
+		}
+		// DialogBoxMorph.destroy() needs a world, so skip it if never opened
+		if (this.dialog.parent) {
+			this.dialog.destroy();
+		}
+		this.dialog = null;
+	}
+
+	if (this.scene) {
+		this.scene.dispose();
+		this.scene = null;
+	}
+	if (this.engine) {
+		this.engine.dispose();
+		this.engine = null;
+	}
+	this.glCanvas = null;
+};
+
 BeetleController.prototype.setupOverlayMouseControls = function () {
 	var controller = this;
 
@@ -623,6 +679,9 @@ BeetleController.prototype.showStageContent = function () {
 BeetleController.prototype.createBeetleCoordinatesBar = function () {
 	if (this.beetleCoordinatesBar) {
 		this.beetleCoordinatesBar.destroy();
+	}
+	if (this.beetleControlsBar) {
+		this.beetleControlsBar.destroy();
 	}
 
 	// Get the IDE to access the corralBar
@@ -1405,8 +1464,9 @@ BeetleController.prototype.restoreCameraFromOverlay = function () {
 };
 
 BeetleController.prototype.beetleTrailsBoundingBox = function () {
-	var min = this.beetleTrails[0].getBoundingInfo().boundingBox.minimumWorld,
-		max = this.beetleTrails[0].getBoundingInfo().boundingBox.maximumWorld;
+	// clone, otherwise we'd be overwriting the first trail's own bounding box
+	var min = this.beetleTrails[0].getBoundingInfo().boundingBox.minimumWorld.clone(),
+		max = this.beetleTrails[0].getBoundingInfo().boundingBox.maximumWorld.clone();
 
 	this.beetleTrails.forEach((obj) => {
 		var box = obj.getBoundingInfo().boundingBox;
@@ -1418,6 +1478,13 @@ BeetleController.prototype.beetleTrailsBoundingBox = function () {
 		max.z = Math.max(max.z, box.maximumWorld.z);
 	});
 	return new BABYLON.BoundingBox(min, max);
+};
+
+BeetleController.prototype.addTrail = function (mesh) {
+	// trails never move once built, so skip recomputing their world matrix
+	// and bounding info on every frame
+	mesh.freezeWorldMatrix();
+	this.beetleTrails.push(mesh);
 };
 
 // User facing methods, called from blocks
@@ -2223,7 +2290,8 @@ Beetle.prototype.scaledExtrusionShape = function () {
 
 Beetle.prototype.updateExtrusionShapeOutline = function () {
 	if (this.extrusionShapeOutline) {
-		this.controller.scene.removeMesh(this.extrusionShapeOutline);
+		// dispose, not just removeMesh, or its GPU buffers leak on every call
+		this.extrusionShapeOutline.dispose();
 	}
 	this.extrusionShape = this.newExtrusionShape(this.extrusionShapeSelector);
 	if (this.extrusionShape.length > 1) {
@@ -2312,7 +2380,7 @@ Beetle.prototype.extrudePolygon = function () {
 		prism.visibility = this.controller.ghostModeEnabled ? 0.25 : 1;
 		prism.convertToFlatShadedMesh();
 
-		this.controller.beetleTrails.push(prism);
+		this.controller.addTrail(prism);
 		this.extruded = true;
 
 		if (isVolume) {
@@ -2328,7 +2396,7 @@ Beetle.prototype.computeExtrusionCaps = function (currentTransformMatrix) {
 	if (this.lastCap) {
 		// Remove the intermediate caps from inside the current
 		// extrusion.
-		this.controller.scene.removeMesh(this.lastCap);
+		this.lastCap.dispose();
 		this.controller.beetleTrails.splice(this.controller.beetleTrails.indexOf(this.lastCap), 1);
 	} else {
 		// Let's add the back cap. Only to be done on first
@@ -2344,8 +2412,8 @@ Beetle.prototype.computeExtrusionCaps = function (currentTransformMatrix) {
 		backCap.material = BeetleController.Cache.getMaterial(this.getMaterialColor());
 		backCap.material.wireframe = this.controller.wireframeEnabled;
 		backCap.visibility = this.controller.ghostModeEnabled ? 0.25 : 1;
-		this.controller.beetleTrails.push(backCap);
 		backCap.bakeTransformIntoVertices(this.lastTransformMatrix);
+		this.controller.addTrail(backCap);
 	}
 
 	// Let's add the new front cap.
@@ -2362,8 +2430,8 @@ Beetle.prototype.computeExtrusionCaps = function (currentTransformMatrix) {
 	frontCap.material = BeetleController.Cache.getMaterial(this.getMaterialColor());
 	frontCap.material.wireframe = this.controller.wireframeEnabled;
 	frontCap.visibility = this.controller.ghostModeEnabled ? 0.25 : 1;
-	this.controller.beetleTrails.push(frontCap);
 	frontCap.bakeTransformIntoVertices(currentTransformMatrix);
+	this.controller.addTrail(frontCap);
 
 	this.lastCap = frontCap;
 };
@@ -2569,6 +2637,13 @@ Beetle.prototype.renderArc = function (width, height) {
 	var beetlePos = this.body.position;
 	var beetleRotationMatrix = this.body.computeWorldMatrix(true);
 
+	// Extract only the rotation part of the matrix (3x3 upper-left)
+	var rotationMatrix = beetleRotationMatrix.clone();
+	rotationMatrix.m[12] = 0; // Remove translation X
+	rotationMatrix.m[13] = 0; // Remove translation Y
+	rotationMatrix.m[14] = 0; // Remove translation Z
+	rotationMatrix.m[15] = 1; // Keep homogeneous coordinate
+
 	// Get thickness from shape scale and extrusion scale
 	var thickness =
 		Math.max(this.shapeScale.x, this.shapeScale.y) * Math.max(this.extrusionScale.x, this.extrusionScale.z);
@@ -2589,13 +2664,6 @@ Beetle.prototype.renderArc = function (width, height) {
 		// Create local point relative to beetle - swap Y and Z coordinates
 		// Apply Y scaling to the Y component (depth/thickness)
 		var localPoint = new BABYLON.Vector3(0, z * this.extrusionScale.y, y);
-
-		// Extract only the rotation part of the matrix (3x3 upper-left)
-		var rotationMatrix = beetleRotationMatrix.clone();
-		rotationMatrix.m[12] = 0; // Remove translation X
-		rotationMatrix.m[13] = 0; // Remove translation Y
-		rotationMatrix.m[14] = 0; // Remove translation Z
-		rotationMatrix.m[15] = 1; // Keep homogeneous coordinate
 
 		// Transform by beetle's rotation only
 		var rotatedPoint = BABYLON.Vector3.TransformCoordinates(localPoint, rotationMatrix);
@@ -2627,7 +2695,7 @@ Beetle.prototype.renderArc = function (width, height) {
 	arcTube.material.wireframe = this.controller.wireframeEnabled;
 	arcTube.visibility = this.controller.ghostModeEnabled ? 0.25 : 1;
 
-	this.controller.beetleTrails.push(arcTube);
+	this.controller.addTrail(arcTube);
 
 	this.controller.changed();
 };
@@ -2640,6 +2708,13 @@ Beetle.prototype.renderTorus = function (width, length) {
 	// Get beetle's current position and rotation
 	var beetlePos = this.body.position;
 	var beetleRotationMatrix = this.body.computeWorldMatrix(true);
+
+	// Extract only the rotation part of the matrix (3x3 upper-left)
+	var rotationMatrix = beetleRotationMatrix.clone();
+	rotationMatrix.m[12] = 0; // Remove translation X
+	rotationMatrix.m[13] = 0; // Remove translation Y
+	rotationMatrix.m[14] = 0; // Remove translation Z
+	rotationMatrix.m[15] = 1; // Keep homogeneous coordinate
 
 	// Get thickness from shape scale and extrusion scale
 	var thickness =
@@ -2655,13 +2730,6 @@ Beetle.prototype.renderTorus = function (width, length) {
 		// Create local point relative to beetle - swap Y and Z coordinates
 		// Apply Y scaling to the Y component (depth/thickness)
 		var localPoint = new BABYLON.Vector3(0, z * this.extrusionScale.y, y);
-
-		// Extract only the rotation part of the matrix (3x3 upper-left)
-		var rotationMatrix = beetleRotationMatrix.clone();
-		rotationMatrix.m[12] = 0; // Remove translation X
-		rotationMatrix.m[13] = 0; // Remove translation Y
-		rotationMatrix.m[14] = 0; // Remove translation Z
-		rotationMatrix.m[15] = 1; // Keep homogeneous coordinate
 
 		// Transform by beetle's rotation only
 		var rotatedPoint = BABYLON.Vector3.TransformCoordinates(localPoint, rotationMatrix);
@@ -2692,7 +2760,7 @@ Beetle.prototype.renderTorus = function (width, length) {
 	torusTube.material.wireframe = this.controller.wireframeEnabled;
 	torusTube.visibility = this.controller.ghostModeEnabled ? 0.25 : 1;
 
-	this.controller.beetleTrails.push(torusTube);
+	this.controller.addTrail(torusTube);
 
 	this.controller.changed();
 };
@@ -2720,7 +2788,7 @@ Beetle.prototype.renderSphere = function (radius) {
 	sphere.scaling = this.extrusionScale.clone();
 
 	// Position and orient the sphere
-	sphere.position = beetlePos;
+	sphere.position = beetlePos.clone();
 	if (this.body.rotationQuaternion) {
 		sphere.rotationQuaternion = this.body.rotationQuaternion.clone();
 	}
@@ -2731,7 +2799,7 @@ Beetle.prototype.renderSphere = function (radius) {
 	sphere.material.wireframe = this.controller.wireframeEnabled;
 	sphere.visibility = this.controller.ghostModeEnabled ? 0.25 : 1;
 
-	this.controller.beetleTrails.push(sphere);
+	this.controller.addTrail(sphere);
 	this.controller.changed();
 };
 
@@ -2756,7 +2824,7 @@ Beetle.prototype.renderBox = function (width, height, depth) {
 	);
 
 	// Position and orient the box
-	box.position = beetlePos;
+	box.position = beetlePos.clone();
 	if (this.body.rotationQuaternion) {
 		box.rotationQuaternion = this.body.rotationQuaternion.clone();
 	}
@@ -2767,7 +2835,7 @@ Beetle.prototype.renderBox = function (width, height, depth) {
 	box.material.wireframe = this.controller.wireframeEnabled;
 	box.visibility = this.controller.ghostModeEnabled ? 0.25 : 1;
 
-	this.controller.beetleTrails.push(box);
+	this.controller.addTrail(box);
 	this.controller.changed();
 };
 
@@ -2793,7 +2861,7 @@ Beetle.prototype.renderCylinder = function (top, bottom, height) {
 	);
 
 	// Position and orient the cylinder
-	cylinder.position = beetlePos;
+	cylinder.position = beetlePos.clone();
 	if (this.body.rotationQuaternion) {
 		cylinder.rotationQuaternion = this.body.rotationQuaternion.clone();
 	}
@@ -2804,7 +2872,7 @@ Beetle.prototype.renderCylinder = function (top, bottom, height) {
 	cylinder.material.wireframe = this.controller.wireframeEnabled;
 	cylinder.visibility = this.controller.ghostModeEnabled ? 0.25 : 1;
 
-	this.controller.beetleTrails.push(cylinder);
+	this.controller.addTrail(cylinder);
 	this.controller.changed();
 };
 
@@ -2833,7 +2901,7 @@ Beetle.prototype.renderTorusKnot = function (radius, tube, p, q, heightScale) {
 	);
 
 	// Position and orient the torus knot
-	torusKnot.position = beetlePos;
+	torusKnot.position = beetlePos.clone();
 	if (this.body.rotationQuaternion) {
 		torusKnot.rotationQuaternion = this.body.rotationQuaternion.clone();
 	}
@@ -2844,7 +2912,7 @@ Beetle.prototype.renderTorusKnot = function (radius, tube, p, q, heightScale) {
 	torusKnot.material.wireframe = this.controller.wireframeEnabled;
 	torusKnot.visibility = this.controller.ghostModeEnabled ? 0.25 : 1;
 
-	this.controller.beetleTrails.push(torusKnot);
+	this.controller.addTrail(torusKnot);
 	this.controller.changed();
 };
 
@@ -2931,6 +2999,22 @@ Beetle.prototype.resetCameraToInitial = function () {
 
 	this.controller.changed();
 };
+
+// Stage cleanup /////////////////////////////////////////////////////////
+
+// The IDE destroys the old stage when a project (or scene) replaces it, see
+// IDE_Morph.prototype.switchToScene and createStage. Dispose its controller
+// along with it so its bars, step functions and WebGL context don't linger.
+if (!StageMorph.prototype.destroyWithoutBeetle) {
+	StageMorph.prototype.destroyWithoutBeetle = StageMorph.prototype.destroy;
+	StageMorph.prototype.destroy = function () {
+		if (this.beetleController) {
+			this.beetleController.destroy();
+			this.beetleController = null;
+		}
+		this.destroyWithoutBeetle();
+	};
+}
 
 // SnapExtensions API ////////////////////////////////////////////////////
 
