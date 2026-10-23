@@ -573,6 +573,57 @@ BeetleController.prototype.toggleOverlayMode = function () {
 	}
 };
 
+// Tear down everything this controller added to the IDE and release the
+// Babylon engine. Called when the stage that owns it is discarded (e.g. when
+// another project is opened), since the bars live in the IDE, not the stage.
+BeetleController.prototype.destroy = function () {
+	if (this.isDestroyed) return;
+	this.isDestroyed = true;
+
+	if (this.beetleControlsBar) {
+		this.beetleControlsBar.destroy();
+		this.beetleControlsBar = null;
+	}
+	if (this.beetleCoordinatesBar) {
+		this.beetleCoordinatesBar.destroy();
+		this.beetleCoordinatesBar = null;
+	}
+
+	if (this.stageOverlay) {
+		if (this.stageOverlay.originalSetExtent) {
+			this.stage.setExtent = this.stageOverlay.originalSetExtent;
+		}
+		this.stageOverlay.destroy();
+		this.stageOverlay = null;
+	}
+	if (this.stage.originalDrawOn) {
+		this.stage.drawOn = this.stage.originalDrawOn;
+		this.stage.originalDrawOn = null;
+	}
+	this.overlayMode = false;
+
+	if (this.dialog) {
+		if (this.fullScreenMode) {
+			this.dialog.renderView.destroy();
+		}
+		// DialogBoxMorph.destroy() needs a world, so skip it if never opened
+		if (this.dialog.parent) {
+			this.dialog.destroy();
+		}
+		this.dialog = null;
+	}
+
+	if (this.scene) {
+		this.scene.dispose();
+		this.scene = null;
+	}
+	if (this.engine) {
+		this.engine.dispose();
+		this.engine = null;
+	}
+	this.glCanvas = null;
+};
+
 BeetleController.prototype.setupOverlayMouseControls = function () {
 	var controller = this;
 
@@ -2948,6 +2999,22 @@ Beetle.prototype.resetCameraToInitial = function () {
 
 	this.controller.changed();
 };
+
+// Stage cleanup /////////////////////////////////////////////////////////
+
+// The IDE destroys the old stage when a project (or scene) replaces it, see
+// IDE_Morph.prototype.switchToScene and createStage. Dispose its controller
+// along with it so its bars, step functions and WebGL context don't linger.
+if (!StageMorph.prototype.destroyWithoutBeetle) {
+	StageMorph.prototype.destroyWithoutBeetle = StageMorph.prototype.destroy;
+	StageMorph.prototype.destroy = function () {
+		if (this.beetleController) {
+			this.beetleController.destroy();
+			this.beetleController = null;
+		}
+		this.destroyWithoutBeetle();
+	};
+}
 
 // SnapExtensions API ////////////////////////////////////////////////////
 
